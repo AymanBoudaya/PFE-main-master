@@ -17,7 +17,7 @@ class ProductMainActionButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final controller = CartController.instance;
+    final controller = Get.find<CartController>();
 
     return Obx(() {
       final quantity = controller.getProductQuantityInCart(product.id);
@@ -66,9 +66,10 @@ class ProductMainActionButton extends StatelessWidget {
                     size: 20,
                   )
                 else
-                  // Normal screen - full layout
+                  // Normal screen - full layout with flexible text
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
+                    mainAxisSize: MainAxisSize.min,
                     children: [
                       Icon(
                         hasItems
@@ -78,14 +79,19 @@ class ProductMainActionButton extends StatelessWidget {
                         size: 18,
                       ),
                       const SizedBox(width: 6),
-                      Text(
-                        hasItems
-                            ? 'Commander ($quantity)'
-                            : 'Ajouter au panier',
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 14,
-                          fontWeight: FontWeight.w600,
+                      Flexible(
+                        child: FittedBox(
+                          fit: BoxFit.scaleDown,
+                          child: Text(
+                            hasItems
+                                ? 'Commander'
+                                : 'Ajouter au panier',
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
                         ),
                       ),
                     ],

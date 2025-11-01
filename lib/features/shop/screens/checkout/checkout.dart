@@ -95,7 +95,7 @@ class CheckoutScreen extends StatelessWidget {
                     title: 'Panier vide',
                     message:
                         'Veuillez ajouter des produits au panier pour proceder au paiement'),
-            child: Text('Commander $totalAmount DT')),
+            child: const Text('Commander')),
       ),
     );
   }

@@ -86,37 +86,73 @@ class ProductBottomBar extends StatelessWidget {
   }
 
   Widget _buildMobileBottomBar(bool dark, bool isSmallScreen) {
-    return Row(
-      children: [
-        /// Price Display
-        Expanded(
-          child: ProductPriceDisplay(product: product, dark: dark),
-        ),
-
-        /// Quantity Controls & Add to Cart
-        Expanded(
-          flex: 2,
-          child: Row(
+    if (isSmallScreen) {
+      // Very small screens - vertical or compact layout
+      return Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          // First row: Price and Quantity
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
+              Flexible(
+                child: ProductPriceDisplay(product: product, dark: dark),
+              ),
               ProductQuantityControls(
                 product: product,
                 dark: dark,
                 onDecrement: onDecrement,
                 onIncrement: onIncrement,
               ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: ProductMainActionButton(
-                  product: product,
-                  isSmallScreen: isSmallScreen,
-                  onTap: onMainAction,
-                ),
-              ),
             ],
           ),
-        ),
-      ],
-    );
+          const SizedBox(height: 8),
+          // Second row: Add to Cart button (full width)
+          SizedBox(
+            width: double.infinity,
+            child: ProductMainActionButton(
+              product: product,
+              isSmallScreen: isSmallScreen,
+              onTap: onMainAction,
+            ),
+          ),
+        ],
+      );
+    } else {
+      // Normal mobile screens - horizontal layout
+      return Row(
+        children: [
+          /// Price Display
+          Flexible(
+            flex: 1,
+            child: ProductPriceDisplay(product: product, dark: dark),
+          ),
+
+          /// Quantity Controls & Add to Cart
+          Flexible(
+            flex: 2,
+            child: Row(
+              children: [
+                ProductQuantityControls(
+                  product: product,
+                  dark: dark,
+                  onDecrement: onDecrement,
+                  onIncrement: onIncrement,
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: ProductMainActionButton(
+                    product: product,
+                    isSmallScreen: isSmallScreen,
+                    onTap: onMainAction,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      );
+    }
   }
 }
 

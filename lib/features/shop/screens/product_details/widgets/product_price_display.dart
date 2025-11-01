@@ -16,8 +16,8 @@ class ProductPriceDisplay extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final controller = CartController.instance;
-    final variationController = VariationController.instance;
+    final controller = Get.find<CartController>();
+    final variationController = Get.find<VariationController>();
 
     return Obx(() {
       double unitPrice;
@@ -53,19 +53,24 @@ class ProductPriceDisplay extends StatelessWidget {
             quantity > 0 ? 'Total' : 'Prix',
             style: TextStyle(
               color: dark ? Colors.grey.shade400 : Colors.grey.shade600,
-              fontSize: 12,
+              fontSize: 11,
             ),
+            overflow: TextOverflow.ellipsis,
           ),
           const SizedBox(height: 2),
           // Show total price when items in cart, unit price when empty
-          Text(
-            quantity > 0
-                ? '${totalPrice.toStringAsFixed(2)} DT'
-                : '${unitPrice.toStringAsFixed(2)} DT',
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-              color: Colors.green.shade600,
+          FittedBox(
+            fit: BoxFit.scaleDown,
+            alignment: Alignment.centerLeft,
+            child: Text(
+              quantity > 0
+                  ? '${totalPrice.toStringAsFixed(2)} DT'
+                  : '${unitPrice.toStringAsFixed(2)} DT',
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+                color: Colors.green.shade600,
+              ),
             ),
           ),
         ],

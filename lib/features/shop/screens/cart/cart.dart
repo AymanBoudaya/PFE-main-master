@@ -17,7 +17,7 @@ class CartScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final controller = CartController.instance;
+    final controller = Get.find<CartController>();
     final screenHeight = MediaQuery.of(context).size.height;
 
     return LayoutBuilder(builder: (context, constraints) {
@@ -97,7 +97,10 @@ class CartScreen extends StatelessWidget {
           if (controller.cartItems.isEmpty) return const SizedBox.shrink();
 
           return Container(
-            padding: const EdgeInsets.all(AppSizes.defaultSpace),
+            padding: const EdgeInsets.symmetric(
+              horizontal: AppSizes.defaultSpace,
+              vertical: AppSizes.spaceBtwItems,
+            ),
             decoration: BoxDecoration(
               color: Theme.of(context).scaffoldBackgroundColor,
               boxShadow: [
@@ -112,56 +115,122 @@ class CartScreen extends StatelessWidget {
                 topRight: Radius.circular(16),
               ),
             ),
-            child: Row(
-              children: [
-                // Total price
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(
-                        'Total',
-                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                              color: Colors.grey.shade600,
+            child: SafeArea(
+              child: LayoutBuilder(
+                builder: (context, constraints) {
+                  final isSmallScreen = constraints.maxWidth < 380;
+                  
+                  if (isSmallScreen) {
+                    // Vertical layout for small screens
+                    return Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        // Total price
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              'Total',
+                              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                    color: Colors.grey.shade600,
+                                  ),
                             ),
-                      ),
-                      const SizedBox(height: 4),
-                      Obx(() => Text(
-                            '${controller.totalCartPrice.value.toStringAsFixed(2)} DT',
-                            style: Theme.of(context)
-                                .textTheme
-                                .headlineSmall
-                                ?.copyWith(
-                                  fontWeight: FontWeight.w700,
-                                ),
-                          )),
-                    ],
-                  ),
-                ),
-                const SizedBox(width: AppSizes.spaceBtwItems),
-                // Checkout button
-                Expanded(
-                  flex: 2,
-                  child: ElevatedButton(
-                    onPressed: () => Get.to(() => const CheckoutScreen()),
-                    style: ElevatedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      elevation: 2,
-                    ),
-                    child: Text(
-                      'Résumé de la commande',
-                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                            color: Colors.white,
-                            fontWeight: FontWeight.w600,
+                            Obx(() => Text(
+                                  '${controller.totalCartPrice.value.toStringAsFixed(2)} DT',
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .titleLarge
+                                      ?.copyWith(
+                                        fontWeight: FontWeight.w700,
+                                      ),
+                                )),
+                          ],
+                        ),
+                        const SizedBox(height: AppSizes.spaceBtwItems),
+                        // Checkout button - full width
+                        SizedBox(
+                          width: double.infinity,
+                          child: ElevatedButton(
+                            onPressed: () => Get.to(() => const CheckoutScreen()),
+                            style: ElevatedButton.styleFrom(
+                              padding: const EdgeInsets.symmetric(vertical: 14),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              elevation: 2,
+                            ),
+                            child: Text(
+                              'Résumé de la commande',
+                              style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                              textAlign: TextAlign.center,
+                            ),
                           ),
-                    ),
-                  ),
-                ),
-              ],
+                        ),
+                      ],
+                    );
+                  } else {
+                    // Horizontal layout for larger screens
+                    return Row(
+                      children: [
+                        // Total price
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text(
+                                'Total',
+                                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                      color: Colors.grey.shade600,
+                                    ),
+                              ),
+                              const SizedBox(height: 4),
+                              Obx(() => Text(
+                                    '${controller.totalCartPrice.value.toStringAsFixed(2)} DT',
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .headlineSmall
+                                        ?.copyWith(
+                                          fontWeight: FontWeight.w700,
+                                        ),
+                                  )),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(width: AppSizes.spaceBtwItems),
+                        // Checkout button
+                        Expanded(
+                          flex: 2,
+                          child: ElevatedButton(
+                            onPressed: () => Get.to(() => const CheckoutScreen()),
+                            style: ElevatedButton.styleFrom(
+                              padding: const EdgeInsets.symmetric(vertical: 16),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              elevation: 2,
+                            ),
+                            child: FittedBox(
+                              fit: BoxFit.scaleDown,
+                              child: Text(
+                                'Résumé de la commande',
+                                style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    );
+                  }
+                },
+              ),
             ),
           );
         }),

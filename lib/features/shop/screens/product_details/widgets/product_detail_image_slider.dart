@@ -4,6 +4,7 @@ import 'package:caferesto/common/widgets/custom_shapes/curved_edges/curved_edges
 import 'package:caferesto/common/widgets/images/t_rounded_image.dart';
 import 'package:caferesto/common/widgets/products/favorite_icon/favorite_icon.dart';
 import 'package:caferesto/features/shop/controllers/product/images_controller.dart';
+import 'package:caferesto/features/shop/screens/home/home.dart';
 import 'package:caferesto/utils/constants/colors.dart';
 import 'package:caferesto/utils/constants/sizes.dart';
 import 'package:flutter/material.dart';
@@ -101,6 +102,9 @@ class TProductImageSlider extends StatelessWidget {
 
                 /// Appbar icons
                 TAppBar(
+                  showBackArrow: false,
+                  leadingIcon: Icons.home,
+                  leadingOnPressed: () => Get.off(HomeScreen()),
                   actions: [
                     /// Favorite Icon
                     FavoriteIcon(
