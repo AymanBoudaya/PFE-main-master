@@ -109,11 +109,9 @@ class TProductAttributes extends StatelessWidget {
                         // Select or deselect variation
                         if (selected) {
                           variationController.selectVariation(sp.size, sp.price);
-                          cartController.updateVariation(
-                            product.id,
-                            variationController.selectedSize.value,
-                            variationController.selectedPrice.value,
-                          );
+                          // When variation changes, ensure temp quantity reflects existing cart quantity
+                          // This is handled automatically by getTempQuantity, which calls getExistingQuantity
+                          // No need to update variation in cart here - we're just selecting, not adding
                         } else {
                           variationController.clearVariation();
                         }

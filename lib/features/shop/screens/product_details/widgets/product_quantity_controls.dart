@@ -19,10 +19,11 @@ class ProductQuantityControls extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final controller = CartController.instance;
+    final controller = Get.find<CartController>();
 
     return Obx(() {
-      final quantity = controller.getProductQuantityInCart(product.id);
+      // Use getTempQuantity which properly handles variations and temp quantities
+      final quantity = controller.getTempQuantity(product);
 
       return Container(
         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),

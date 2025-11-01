@@ -15,7 +15,7 @@ class CartItemQuantityControls extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final controller = CartController.instance;
+    final controller = Get.find<CartController>();
 
     return Obx(() {
       // Find the current cart item from the observable list to get the updated quantity

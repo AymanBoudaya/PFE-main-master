@@ -24,10 +24,10 @@ class CheckoutScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final cartController = CartController.instance;
+    final cartController = Get.find<CartController>();
     UserController.instance;
     final subTotal = cartController.totalCartPrice.value;
-    final orderController = Get.put(OrderController());
+    final orderController = Get.find<OrderController>();
     final totalAmount = TPricingCalculator.calculateTotalPrice(subTotal, 'tn');
     final dark = THelperFunctions.isDarkMode(context);
 
@@ -40,8 +40,8 @@ class CheckoutScreen extends StatelessWidget {
           padding: const EdgeInsets.all(AppSizes.defaultSpace),
           child: Column(
             children: [
-              /// Items in cart
-              TCartItems(),
+              /// Items in cart (checkout mode - no buttons, bill-like format)
+              TCartItems(isCheckout: true),
               SizedBox(
                 height: AppSizes.spaceBtwSections,
               ),
@@ -117,7 +117,7 @@ class CheckoutScreen extends StatelessWidget {
   // WIDGET : Aucun créneau sélectionné
   Widget _buildNoTimeSlotWidget(OrderController orderController) {
     final dark = THelperFunctions.isDarkMode(Get.context!);
-    final cartController = CartController.instance;
+    final cartController = Get.find<CartController>();
     final firstItem = cartController.cartItems.isNotEmpty
         ? cartController.cartItems.first
         : null;
@@ -263,7 +263,7 @@ class CheckoutScreen extends StatelessWidget {
             TextButton(
               onPressed: () async {
                 final dark = THelperFunctions.isDarkMode(Get.context!);
-                final cartController = CartController.instance;
+                final cartController = Get.find<CartController>();
                 final firstItem = cartController.cartItems.isNotEmpty
                     ? cartController.cartItems.first
                     : null;
@@ -343,8 +343,8 @@ class CheckoutScreen extends StatelessWidget {
     double totalAmount,
     BuildContext context,
   ) {
-    final cartController = CartController.instance;
-    final addressController = AddressController.instance;
+    final cartController = Get.find<CartController>();
+    final addressController = Get.find<AddressController>();
 
     // Vérifier adresse
     if (addressController.selectedAddress.value.id.isEmpty) {

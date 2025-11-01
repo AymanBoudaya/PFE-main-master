@@ -18,11 +18,13 @@ class TCartItems extends StatelessWidget {
     this.showDeleteButton = true,
     this.showModifyButton = true,
     this.compactQuantity = false,
+    this.isCheckout = false,
   });
 
   final bool showDeleteButton;
   final bool showModifyButton;
   final bool compactQuantity;
+  final bool isCheckout; // If true, hide all buttons and show bill-like format
 
   @override
   Widget build(BuildContext context) {
@@ -93,8 +95,9 @@ class TCartItems extends StatelessWidget {
                             ),
                           ],
 
-                          /// Edit and Add Buttons (only for variable products)
-                          if (cartItem.product?.productType == 'variable') ...[
+                          /// Edit and Add Buttons (only for variable products, hidden in checkout)
+                          if (cartItem.product?.productType == 'variable' &&
+                              !isCheckout) ...[
                             const SizedBox(height: 8),
                             _CartItemVariantButtons(
                               cartItem: cartItem,
@@ -109,51 +112,87 @@ class TCartItems extends StatelessWidget {
                       ),
                     ),
 
-                    /// Delete Button
-                    IconButton(
-                      padding: EdgeInsets.zero,
-                      constraints: const BoxConstraints(),
-                      onPressed: () => controller.removeFromCartDialog(index),
-                      icon: Icon(
-                        Icons.delete_outline,
-                        size: 20,
-                        color: Colors.red.shade400,
+                    /// Delete Button (hidden in checkout)
+                    if (!isCheckout)
+                      IconButton(
+                        padding: EdgeInsets.zero,
+                        constraints: const BoxConstraints(),
+                        onPressed: () => controller.removeFromCartDialog(index),
+                        icon: Icon(
+                          Icons.delete_outline,
+                          size: 20,
+                          color: Colors.red.shade400,
+                        ),
                       ),
-                    ),
                   ],
                 ),
 
                 /// Quantity Controls & Total Price
                 const SizedBox(height: AppSizes.sm),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    /// Quantity Controls
-                    CartItemQuantityControls(
-                      cartItem: cartItem,
-                      dark: dark,
-                    ),
-
-                    /// Total Price
-                    Obx(() {
-                      // Get updated cart item from controller
-                      final currentItem = controller.cartItems.firstWhereOrNull(
-                        (item) =>
-                            item.productId == cartItem.productId &&
-                            item.variationId == cartItem.variationId,
-                      );
-                      final item = currentItem ?? cartItem;
-                      return Text(
-                        '${(item.price * item.quantity).toStringAsFixed(2)} DT',
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.green.shade600,
+                if (isCheckout)
+                  // Bill-like format for checkout: show quantity x price = total
+                  Obx(() {
+                    // Get updated cart item from controller
+                    final currentItem = controller.cartItems.firstWhereOrNull(
+                      (item) =>
+                          item.productId == cartItem.productId &&
+                          item.variationId == cartItem.variationId,
+                    );
+                    final item = currentItem ?? cartItem;
+                    return Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        // Quantity x Price
+                        Text(
+                          '${item.quantity} x ${item.price.toStringAsFixed(2)} DT',
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: dark ? Colors.grey.shade300 : Colors.grey.shade700,
+                          ),
                         ),
-                      );
-                    }),
-                  ],
-                ),
+                        // Total Price
+                        Text(
+                          '${(item.price * item.quantity).toStringAsFixed(2)} DT',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.green.shade600,
+                          ),
+                        ),
+                      ],
+                    );
+                  })
+                else
+                  // Normal format with quantity controls
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      /// Quantity Controls
+                      CartItemQuantityControls(
+                        cartItem: cartItem,
+                        dark: dark,
+                      ),
+
+                      /// Total Price
+                      Obx(() {
+                        // Get updated cart item from controller
+                        final currentItem = controller.cartItems.firstWhereOrNull(
+                          (item) =>
+                              item.productId == cartItem.productId &&
+                              item.variationId == cartItem.variationId,
+                        );
+                        final item = currentItem ?? cartItem;
+                        return Text(
+                          '${(item.price * item.quantity).toStringAsFixed(2)} DT',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.green.shade600,
+                          ),
+                        );
+                      }),
+                    ],
+                  ),
               ],
             ),
           );
@@ -222,6 +261,11 @@ class TCartItems extends StatelessWidget {
     // Reset variation selection for a fresh start
     final variationController = Get.find<VariationController>();
     variationController.resetSelectedAttributes();
+
+    // Reset temp quantity for this product when adding a new variation
+    // This ensures the quantity starts fresh (at 0) for the new variation
+    final controller = Get.find<CartController>();
+    controller.resetTempQuantityForProduct(product.id);
 
     // Navigate to product detail
     Get.to(() => ProductDetailScreen(product: product));

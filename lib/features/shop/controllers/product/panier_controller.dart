@@ -93,7 +93,12 @@ class CartController extends GetxController {
   int getTempQuantity(ProduitModel product) {
     final key = _getKey(product);
     // Use temp if exists, else fallback to actual cart quantity
-    return tempQuantityMap[key] ?? getExistingQuantity(product);
+    final tempQuantity = tempQuantityMap[key];
+    if (tempQuantity != null) {
+      return tempQuantity;
+    }
+    // If no temp quantity, get existing quantity from cart
+    return getExistingQuantity(product);
   }
 
   int getExistingQuantity(ProduitModel product) {
@@ -101,10 +106,19 @@ class CartController extends GetxController {
       return getProductQuantityInCart(product.id);
     } else {
       final variationId = variationController.selectedVariation.value.id;
-      return variationId.isNotEmpty
-          ? getVariationQuantityInCart(product.id, variationId)
-          : 0;
+      // For variable products, only return quantity if variation is selected
+      if (variationId.isEmpty) {
+        // No variation selected yet, return 0 (not in cart)
+        return 0;
+      }
+      return getVariationQuantityInCart(product.id, variationId);
     }
+  }
+  
+  /// Reset temp quantity for a product (useful when navigating to add new variation)
+  void resetTempQuantityForProduct(String productId) {
+    // Remove all temp quantities for this product (regardless of variation)
+    tempQuantityMap.removeWhere((key, value) => key.startsWith('$productId-'));
   }
 
   // --- Add / Remove from Cart -----------------------------------------------
@@ -193,12 +207,10 @@ class CartController extends GetxController {
       return;
     }
 
-    if (quantity < 1) {
-      TLoaders.customToast(message: 'Veuillez choisir une quantité');
-      return;
-    }
+    // If quantity is 0, default to 1 for new items
+    final quantityToAdd = quantity > 0 ? quantity : 1;
 
-    final selectedCartItem = productToCartItem(product, quantity);
+    final selectedCartItem = productToCartItem(product, quantityToAdd);
 
     // Vérifier si la variante existe déjà
     final existingIndex = cartItems.indexWhere((item) =>
@@ -215,6 +227,9 @@ class CartController extends GetxController {
     // Ajouter la nouvelle variante
     cartItems.add(selectedCartItem);
     TLoaders.customToast(message: 'Produit ajouté au panier');
+    
+    // Reset temp quantity after successfully adding to cart
+    updateTempQuantity(product, 0);
     updateCart();
   }
 

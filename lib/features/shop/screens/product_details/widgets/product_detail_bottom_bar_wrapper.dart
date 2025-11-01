@@ -62,22 +62,26 @@ class ProductDetailBottomBarWrapper extends StatelessWidget {
     }
 
     // Add new item (either new variation or new product)
-    final cartItem = controller.productToCartItem(product, 1);
-    controller.addOneToCart(cartItem);
+    // Use addToCart which handles the logic properly
+    controller.addToCart(product);
   }
 
   void _handleIncrement(CartController controller) {
     if (!controller.canAddProduct(product)) return;
     if (product.productType == 'single' || controller.hasSelectedVariant()) {
-      final cartItem = controller.productToCartItem(product, 1);
-      controller.addOneToCart(cartItem);
+      // Get current temp quantity and increment it
+      final currentQuantity = controller.getTempQuantity(product);
+      controller.updateTempQuantity(product, currentQuantity + 1);
     }
   }
 
   void _handleDecrement(CartController controller) {
     if (product.productType == 'single' || controller.hasSelectedVariant()) {
-      final cartItem = controller.productToCartItem(product, 1);
-      controller.removeOneFromCart(cartItem);
+      // Get current temp quantity and decrement it
+      final currentQuantity = controller.getTempQuantity(product);
+      if (currentQuantity > 0) {
+        controller.updateTempQuantity(product, currentQuantity - 1);
+      }
     }
   }
 
