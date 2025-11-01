@@ -1,0 +1,122 @@
+import 'package:caferesto/features/shop/models/produit_model.dart';
+import 'package:caferesto/utils/constants/colors.dart';
+import 'package:caferesto/utils/constants/sizes.dart';
+import 'package:caferesto/utils/device/device_utility.dart';
+import 'package:flutter/material.dart';
+import 'product_main_action_button.dart';
+import 'product_price_display.dart';
+import 'product_quantity_controls.dart';
+
+class ProductBottomBar extends StatelessWidget {
+  const ProductBottomBar({
+    super.key,
+    required this.product,
+    required this.dark,
+    required this.isSmallScreen,
+    required this.onIncrement,
+    required this.onDecrement,
+    required this.onMainAction,
+  });
+
+  final ProduitModel product;
+  final bool dark;
+  final bool isSmallScreen;
+  final VoidCallback onIncrement;
+  final VoidCallback? onDecrement;
+  final VoidCallback onMainAction;
+
+  @override
+  Widget build(BuildContext context) {
+    final isDesktop = TDeviceUtils.isDesktop(context);
+
+    return Container(
+      padding: EdgeInsets.symmetric(
+        horizontal: isDesktop ? 40 : AppSizes.defaultSpace,
+        vertical: 16,
+      ),
+      decoration: BoxDecoration(
+        color: dark ? AppColors.darkerGrey : Colors.white,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.1),
+            blurRadius: 20,
+            offset: const Offset(0, -5),
+          ),
+        ],
+        borderRadius: isDesktop
+            ? BorderRadius.circular(20)
+            : const BorderRadius.only(
+                topLeft: Radius.circular(20),
+                topRight: Radius.circular(20),
+              ),
+      ),
+      child: isDesktop
+          ? _buildDesktopBottomBar(dark)
+          : _buildMobileBottomBar(dark, isSmallScreen),
+    );
+  }
+
+  Widget _buildDesktopBottomBar(bool dark) {
+    return Row(
+      children: [
+        /// Price Display
+        ProductPriceDisplay(product: product, dark: dark),
+
+        /// Quantity Controls
+        ProductQuantityControls(
+          product: product,
+          dark: dark,
+          onDecrement: onDecrement,
+          onIncrement: onIncrement,
+        ),
+
+        const SizedBox(width: 20),
+
+        /// Add to Cart Button
+        Expanded(
+          flex: 2,
+          child: ProductMainActionButton(
+            product: product,
+            isSmallScreen: false,
+            onTap: onMainAction,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildMobileBottomBar(bool dark, bool isSmallScreen) {
+    return Row(
+      children: [
+        /// Price Display
+        Expanded(
+          child: ProductPriceDisplay(product: product, dark: dark),
+        ),
+
+        /// Quantity Controls & Add to Cart
+        Expanded(
+          flex: 2,
+          child: Row(
+            children: [
+              ProductQuantityControls(
+                product: product,
+                dark: dark,
+                onDecrement: onDecrement,
+                onIncrement: onIncrement,
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: ProductMainActionButton(
+                  product: product,
+                  isSmallScreen: isSmallScreen,
+                  onTap: onMainAction,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+}
+
