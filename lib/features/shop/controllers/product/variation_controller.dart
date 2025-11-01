@@ -4,6 +4,7 @@ import '../../models/product_variation_model.dart';
 
 class VariationController extends GetxController {
   static VariationController get instance => Get.find<VariationController>();
+
   /// Variables
   final RxMap<String, dynamic> selectedAttributes = <String, dynamic>{}.obs;
   final RxString variationStockStatus = ''.obs;
@@ -70,5 +71,7 @@ class VariationController extends GetxController {
     selectedAttributes.clear();
     variationStockStatus.value = '';
     selectedVariation.value = ProductVariationModel.empty();
+    // Also clear selectedSize and selectedPrice to keep UI in sync
+    clearVariation();
   }
 }
