@@ -9,10 +9,12 @@ class ProductDetailMobileLayout extends StatelessWidget {
     super.key,
     required this.product,
     required this.dark,
+    this.excludeVariationId,
   });
 
   final ProduitModel product;
   final bool dark;
+  final String? excludeVariationId;
 
   @override
   Widget build(BuildContext context) {
@@ -25,7 +27,11 @@ class ProductDetailMobileLayout extends StatelessWidget {
           /// 2 - Product Details
           Padding(
             padding: const EdgeInsets.all(AppSizes.defaultSpace),
-            child: ProductDetailsContent(product: product, dark: dark),
+            child: ProductDetailsContent(
+              product: product,
+              dark: dark,
+              excludeVariationId: excludeVariationId,
+            ),
           ),
         ],
       ),

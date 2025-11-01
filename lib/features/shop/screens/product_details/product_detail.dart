@@ -15,12 +15,31 @@ class ProductDetailScreen extends StatelessWidget {
     super.key,
     required this.product,
     this.skipVariationReset = false,
+    this.initialVariationId,
+    this.onVariationSelected,
+    this.currentCartItemIndex,
+    this.isEditMode = false,
   }) {
     // Reset variations when screen is opened (unless skipping for edit mode)
-    if (!skipVariationReset) {
+    if (!skipVariationReset && !isEditMode) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (Get.isRegistered<VariationController>()) {
-          Get.find<VariationController>().resetSelectedAttributes();
+          final controller = Get.find<VariationController>();
+          controller.resetSelectedAttributes();
+        }
+      });
+    } else if (isEditMode && initialVariationId != null) {
+      // In edit mode, initialize with the current variation
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (Get.isRegistered<VariationController>()) {
+          final controller = Get.find<VariationController>();
+          // Find the size and price for this variation
+          final sizePrice = product.sizesPrices.firstWhereOrNull(
+            (sp) => sp.size == initialVariationId,
+          );
+          if (sizePrice != null) {
+            controller.selectVariation(sizePrice.size, sizePrice.price);
+          }
         }
       });
     }
@@ -28,6 +47,10 @@ class ProductDetailScreen extends StatelessWidget {
 
   final ProduitModel product;
   final bool skipVariationReset;
+  final String? initialVariationId;
+  final VoidCallback? onVariationSelected;
+  final int? currentCartItemIndex; // For edit mode
+  final bool isEditMode; // Whether we're editing an existing cart item
 
   @override
   Widget build(BuildContext context) {
@@ -41,11 +64,20 @@ class ProductDetailScreen extends StatelessWidget {
         product: product,
         dark: dark,
         isSmallScreen: isSmallScreen,
+        onVariationSelected: onVariationSelected,
       ),
       body: SafeArea(
         child: isDesktop
-            ? ProductDetailDesktopLayout(product: product, dark: dark)
-            : ProductDetailMobileLayout(product: product, dark: dark),
+            ? ProductDetailDesktopLayout(
+                product: product,
+                dark: dark,
+                excludeVariationId: isEditMode ? initialVariationId : null,
+              )
+            : ProductDetailMobileLayout(
+                product: product,
+                dark: dark,
+                excludeVariationId: isEditMode ? initialVariationId : null,
+              ),
       ),
     );
   }

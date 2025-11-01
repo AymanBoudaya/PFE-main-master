@@ -99,8 +99,10 @@ class TCartItems extends StatelessWidget {
                             _CartItemVariantButtons(
                               cartItem: cartItem,
                               controller: controller,
-                              onEdit: () => _navigateToEditVariation(context, cartItem),
-                              onAdd: () => _navigateToAddVariation(context, cartItem),
+                              onEdit: () =>
+                                  _navigateToEditVariation(context, cartItem),
+                              onAdd: () =>
+                                  _navigateToAddVariation(context, cartItem),
                             ),
                           ],
                         ],
@@ -173,24 +175,35 @@ class TCartItems extends StatelessWidget {
       return;
     }
 
-    // Pre-select the current variation before navigating
-    final variationController = Get.find<VariationController>();
-    if (cartItem.variationId.isNotEmpty) {
-      // Find the size and price for this variation
-      final sizePrice = product.sizesPrices.firstWhereOrNull(
-        (sp) => sp.size == cartItem.variationId,
+    // Find the cart item index
+    final controller = Get.find<CartController>();
+    final cartItemIndex = controller.cartItems.indexWhere(
+      (item) =>
+          item.productId == cartItem.productId &&
+          item.variationId == cartItem.variationId,
+    );
+
+    if (cartItemIndex < 0) {
+      Get.snackbar(
+        'Erreur',
+        'Article introuvable dans le panier',
+        backgroundColor: Colors.red,
+        colorText: Colors.white,
       );
-      
-      if (sizePrice != null) {
-        variationController.selectVariation(sizePrice.size, sizePrice.price);
-      }
+      return;
     }
 
-    // Navigate to product detail with skipVariationReset=true to preserve selection
+    // Navigate to product detail in edit mode
     Get.to(() => ProductDetailScreen(
-      product: product,
-      skipVariationReset: true,
-    ));
+          product: product,
+          isEditMode: true,
+          initialVariationId: cartItem.variationId,
+          currentCartItemIndex: cartItemIndex,
+          onVariationSelected: () {
+            // This callback will be called when user confirms the modification
+            controller.modifyCartVariation(product.id, cartItemIndex);
+          },
+        ));
   }
 
   /// Navigate to product detail for adding a new variation
@@ -215,7 +228,6 @@ class TCartItems extends StatelessWidget {
   }
 }
 
-/// Separate widget for variant buttons to optimize Obx usage
 class _CartItemVariantButtons extends StatelessWidget {
   const _CartItemVariantButtons({
     required this.cartItem,
@@ -233,64 +245,66 @@ class _CartItemVariantButtons extends StatelessWidget {
   Widget build(BuildContext context) {
     final product = cartItem.product;
     if (product == null) return const SizedBox.shrink();
-    
-    // Single Obx to check if all variations are in cart
+
     return Obx(() {
-      // Only access cartItems once to trigger reactivity
-      final _ = controller.cartItems.length;
+      // Vérifie si la variation actuelle est déjà dans le panier
+      final currentVariationInCart = controller.isVariationInCart(
+        cartItem.productId,
+        cartItem.variationId,
+      );
+
+      // Vérifie si toutes les variations du produit sont déjà dans le panier
       final allVariationsInCart = controller.areAllVariationsInCart(product);
-      
+
       return Row(
         children: [
-          // Edit button - edit current variation
+          // Modifier (actif uniquement si la variation actuelle est dans le panier)
           Expanded(
             child: OutlinedButton.icon(
-              onPressed: allVariationsInCart ? null : onEdit,
+              onPressed: currentVariationInCart ? onEdit : null,
               icon: Icon(
                 Icons.edit_outlined,
                 size: 16,
-                color: allVariationsInCart
-                    ? Colors.grey
-                    : Colors.blue.shade400,
+                color:
+                    currentVariationInCart ? Colors.blue.shade400 : Colors.grey,
               ),
               label: Text(
                 'Modifier',
                 style: TextStyle(
                   fontSize: 12,
-                  color: allVariationsInCart
-                      ? Colors.grey
-                      : Colors.blue.shade400,
+                  color: currentVariationInCart
+                      ? Colors.blue.shade400
+                      : Colors.grey,
                 ),
               ),
               style: OutlinedButton.styleFrom(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
                 side: BorderSide(
-                  color: allVariationsInCart
-                      ? Colors.grey.shade300
-                      : Colors.blue.shade400,
+                  color: currentVariationInCart
+                      ? Colors.blue.shade400
+                      : Colors.grey.shade300,
                 ),
               ),
             ),
           ),
           const SizedBox(width: 8),
-          // Add button - add new variation
+
+          // Ajouter (désactivé seulement si TOUTES les variations sont déjà en panier)
           Expanded(
             child: OutlinedButton.icon(
               onPressed: allVariationsInCart ? null : onAdd,
               icon: Icon(
                 Icons.add_circle_outline,
                 size: 16,
-                color: allVariationsInCart
-                    ? Colors.grey
-                    : Colors.green.shade400,
+                color:
+                    allVariationsInCart ? Colors.grey : Colors.green.shade400,
               ),
               label: Text(
                 'Ajouter',
                 style: TextStyle(
                   fontSize: 12,
-                  color: allVariationsInCart
-                      ? Colors.grey
-                      : Colors.green.shade400,
+                  color:
+                      allVariationsInCart ? Colors.grey : Colors.green.shade400,
                 ),
               ),
               style: OutlinedButton.styleFrom(

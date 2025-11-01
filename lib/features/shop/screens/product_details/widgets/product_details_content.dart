@@ -11,10 +11,12 @@ class ProductDetailsContent extends StatelessWidget {
     super.key,
     required this.product,
     required this.dark,
+    this.excludeVariationId,
   });
 
   final ProduitModel product;
   final bool dark;
+  final String? excludeVariationId; // Variation to exclude from disabled list (for edit mode)
 
   @override
   Widget build(BuildContext context) {
@@ -33,7 +35,10 @@ class ProductDetailsContent extends StatelessWidget {
 
         /// Attributes for variable products
         if (product.productType == 'variable')
-          TProductAttributes(product: product),
+          TProductAttributes(
+            product: product,
+            excludeVariationId: excludeVariationId,
+          ),
 
         const SizedBox(height: AppSizes.xl),
 

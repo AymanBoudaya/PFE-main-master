@@ -14,12 +14,20 @@ class CartController extends GetxController {
   RxDouble totalCartPrice = 0.0.obs;
   final RxMap<String, int> tempQuantityMap = <String, int>{}.obs;
   RxList<CartItemModel> cartItems = <CartItemModel>[].obs;
-  
+
   // Get VariationController from GetX dependency injection
-  VariationController get variationController => Get.find<VariationController>();
+  VariationController get variationController =>
+      Get.find<VariationController>();
 
   CartController() {
     loadCartItems();
+  }
+
+  bool isVariationInCart(String productId, String variationId) {
+    return cartItems.any((item) =>
+        item.productId == productId &&
+        item.variationId == variationId &&
+        item.variationId.isNotEmpty);
   }
 
   void updateVariation(String productId, String newSize, double newPrice) {
@@ -101,24 +109,81 @@ class CartController extends GetxController {
 
   // --- Add / Remove from Cart -----------------------------------------------
 
-  void addToCart(ProduitModel product) {
-    if (!canAddProduct(product)) return; // Vérification ajoutée ici
-
-    final quantity = getTempQuantity(product);
-
-    // Prevent adding if 0
-    if (quantity < 1) {
-      TLoaders.customToast(message: 'Veuillez choisir une quantité');
-      return;
-    }
-
-    if (product.productType == ProductType.variable.toString() &&
-        variationController.selectedVariation.value.id.isEmpty) {
+  void modifyCartVariation(String productId, int currentIndex) {
+    if (variationController.selectedVariation.value.id.isEmpty) {
       TLoaders.customToast(message: 'Veuillez choisir une variante');
       return;
     }
 
+    // Get the selected size (variation ID is based on size)
+    final selectedSize = variationController.selectedSize.value;
+    if (selectedSize.isEmpty) {
+      TLoaders.customToast(message: 'Veuillez choisir une variante');
+      return;
+    }
+
+    // Vérifier si la nouvelle variante est déjà dans le panier (excluding current item)
+    final existingIndex = cartItems.indexWhere((item) =>
+        item.productId == productId &&
+        item.variationId == selectedSize &&
+        cartItems.indexOf(item) != currentIndex);
+
+    if (existingIndex >= 0) {
+      TLoaders.customToast(
+          message: 'Cette variante est déjà dans votre panier');
+      return;
+    }
+
+    // Mettre à jour la variante existante
+    final item = cartItems[currentIndex];
+    final product = item.product;
+
+    if (product == null) {
+      TLoaders.customToast(message: 'Produit introuvable');
+      return;
+    }
+
+    final variation = variationController.selectedVariation.value;
+    final price =
+        variation.salePrice > 0 ? variation.salePrice : variation.price;
+
+    // Get the size from attributeValues
+    final size = variation.attributeValues['taille'] ??
+        variation.attributeValues['size'] ??
+        selectedSize;
+
+    // Créer la nouvelle structure de variation
+    final newVariation = <String, String>{
+      'id': selectedSize,
+      'taille': size,
+      'prix': price.toString(),
+    };
+
+    cartItems[currentIndex] = item.copyWith(
+      variationId: selectedSize,
+      price: price,
+      selectedVariation: newVariation,
+      image: variation.image.isEmpty || variation.image == ''
+          ? item.image
+          : variation.image,
+    );
+
+    updateCart();
+    TLoaders.customToast(message: 'Variante modifiée avec succès');
+    Get.back(); // Retourner à l'écran précédent
+  }
+
+  void addToCart(ProduitModel product) {
+    if (!canAddProduct(product)) return;
+
+    final quantity = getTempQuantity(product);
+
+    // Vérifications de base
     if (product.productType == ProductType.variable.toString()) {
+      if (variationController.selectedVariation.value.id.isEmpty) {
+        TLoaders.customToast(message: 'Veuillez choisir une variante');
+        return;
+      }
       if (variationController.selectedVariation.value.stock < 1) {
         TLoaders.customToast(message: 'Produit hors stock');
         return;
@@ -128,28 +193,28 @@ class CartController extends GetxController {
       return;
     }
 
-    final selectedCartItem = productToCartItem(product, quantity);
-    
-    // For variable products, check if this EXACT variation exists
-    // For single products, check if product exists
-    final index = product.productType == ProductType.variable.toString()
-        ? cartItems.indexWhere((cartItem) =>
-            cartItem.productId == selectedCartItem.productId &&
-            cartItem.variationId == selectedCartItem.variationId &&
-            cartItem.variationId.isNotEmpty) // Ensure variationId matches
-        : cartItems.indexWhere((cartItem) =>
-            cartItem.productId == selectedCartItem.productId);
-
-    if (index >= 0) {
-      // Update existing item quantity (same variation/product)
-      cartItems[index].quantity = selectedCartItem.quantity;
-      TLoaders.customToast(message: 'Quantité mise à jour');
-    } else {
-      // Add new item (different variation or new product)
-      cartItems.add(selectedCartItem);
-      TLoaders.customToast(message: 'Produit ajouté au panier');
+    if (quantity < 1) {
+      TLoaders.customToast(message: 'Veuillez choisir une quantité');
+      return;
     }
 
+    final selectedCartItem = productToCartItem(product, quantity);
+
+    // Vérifier si la variante existe déjà
+    final existingIndex = cartItems.indexWhere((item) =>
+        item.productId == selectedCartItem.productId &&
+        item.variationId == selectedCartItem.variationId);
+
+    if (existingIndex >= 0) {
+      // La variante existe déjà, ne rien faire
+      TLoaders.customToast(
+          message: 'Cette variante est déjà dans votre panier');
+      return;
+    }
+
+    // Ajouter la nouvelle variante
+    cartItems.add(selectedCartItem);
+    TLoaders.customToast(message: 'Produit ajouté au panier');
     updateCart();
   }
 
@@ -164,15 +229,26 @@ class CartController extends GetxController {
         ? (variation.salePrice > 0 ? variation.salePrice : variation.price)
         : (product.salePrice > 0.0 ? product.salePrice : product.price);
 
+    // Créer la structure de variation uniformisée
+    final variationData = isVariation
+        ? {
+            'id': variation.id,
+            'taille': variation.attributeValues['taille'] ??
+                variation.attributeValues['size'] ??
+                '',
+            'prix': price.toString()
+          }
+        : null;
+
     return CartItemModel(
       productId: product.id,
       title: product.name,
       price: price,
       image: isVariation ? variation.image : product.imageUrl,
       quantity: quantity,
-      variationId: variation.id,
+      variationId: isVariation ? variation.id : '',
       brandName: product.etablissement?.name ?? 'Inconnu',
-      selectedVariation: isVariation ? variation.attributeValues : null,
+      selectedVariation: variationData,
       etablissementId: product.etablissementId,
       product: product,
     );
@@ -298,46 +374,30 @@ class CartController extends GetxController {
     return item?.quantity ?? 0;
   }
 
-  /// Check if a specific variation is already in cart
-  bool isVariationInCart(String productId, String variationId) {
-    if (variationId.isEmpty) return false;
-    return cartItems.any(
-      (item) => item.productId == productId && 
-                item.variationId == variationId &&
-                item.variationId.isNotEmpty, // Ensure variationId is not empty
-    );
-  }
-
   /// Get all variation IDs that are in cart for a product
   List<String> getVariationsInCart(String productId) {
     return cartItems
-        .where((item) => item.productId == productId && item.variationId.isNotEmpty)
+        .where((item) =>
+            item.productId == productId && item.variationId.isNotEmpty)
         .map((item) => item.variationId)
         .toList();
   }
 
-  /// Check if all variations of a product are already in cart (optimized)
   bool areAllVariationsInCart(ProduitModel product) {
-    if (product.productType != ProductType.variable.toString()) {
-      return false; // Single products don't have variations
-    }
-    
-    if (product.sizesPrices.isEmpty) {
-      return false; // No variations available
-    }
+    final allVariationIds = product.sizesPrices.map((sp) => sp.size).toSet();
+    final cartVariationIds = cartItems
+        .where((item) => item.productId == product.id)
+        .map((item) => item.variationId)
+        .toSet();
 
-    // Use Set for O(1) lookup instead of List.contains which is O(n)
-    final variationsInCartSet = getVariationsInCartSet(product.id);
-    final allVariationSizes = product.sizesPrices.map((sp) => sp.size).toSet();
-    
-    // Check if all variation sizes are in cart using Set intersection
-    return allVariationSizes.difference(variationsInCartSet).isEmpty;
+    return allVariationIds.difference(cartVariationIds).isEmpty;
   }
 
   /// Get cached map of variations in cart for a product (for performance)
   Set<String> getVariationsInCartSet(String productId) {
     return cartItems
-        .where((item) => item.productId == productId && item.variationId.isNotEmpty)
+        .where((item) =>
+            item.productId == productId && item.variationId.isNotEmpty)
         .map((item) => item.variationId)
         .toSet();
   }

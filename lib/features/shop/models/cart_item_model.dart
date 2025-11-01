@@ -20,7 +20,7 @@ class CartItemModel {
     this.price = 0.0,
     this.image,
     this.brandName,
-    this.selectedVariation,
+    this.selectedVariation = const {'id': '', 'taille': '', 'prix': '0.0'},
     this.etablissementId = '',
     this.product,
   });
@@ -38,7 +38,8 @@ class CartItemModel {
       'quantity': quantity,
       'variationId': variationId,
       'brandName': brandName,
-      'selectedVariation': selectedVariation,
+      'selectedVariation':
+          selectedVariation ?? {'id': '', 'taille': '', 'prix': '0.0'},
       'etablissementId': etablissementId,
     };
   }
@@ -64,6 +65,7 @@ class CartItemModel {
     double? price,
     String? image,
     int? quantity,
+    String? variationId,
     String? brandName,
     Map<String, String>? selectedVariation,
     String? etablissementId,
@@ -75,6 +77,7 @@ class CartItemModel {
       price: price ?? this.price,
       image: image ?? this.image,
       quantity: quantity ?? this.quantity,
+      variationId: variationId ?? this.variationId,
       brandName: brandName ?? this.brandName,
       selectedVariation: selectedVariation ?? this.selectedVariation,
       etablissementId: etablissementId ?? this.etablissementId,

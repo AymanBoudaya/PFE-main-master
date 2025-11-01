@@ -11,11 +11,13 @@ class ProductDetailBottomBarWrapper extends StatelessWidget {
     required this.product,
     required this.dark,
     required this.isSmallScreen,
+    this.onVariationSelected,
   });
 
   final ProduitModel product;
   final bool dark;
   final bool isSmallScreen;
+  final VoidCallback? onVariationSelected;
 
   void _handleMainAction(CartController controller) {
     if (!controller.canAddProduct(product)) return;
@@ -32,11 +34,18 @@ class ProductDetailBottomBarWrapper extends StatelessWidget {
         );
         return;
       }
-      
-      // Check if the SPECIFIC variation is in cart
-      final variationId = controller.variationController.selectedVariation.value.id;
-      if (variationId.isNotEmpty) {
-        final variationQuantity = controller.getVariationQuantityInCart(product.id, variationId);
+
+      // If this is a modification (edit mode), call the callback
+      if (onVariationSelected != null) {
+        onVariationSelected!();
+        return;
+      }
+
+      // Check if the SPECIFIC variation is in cart (for add mode)
+      final selectedSize = controller.variationController.selectedSize.value;
+      if (selectedSize.isNotEmpty) {
+        final variationQuantity =
+            controller.getVariationQuantityInCart(product.id, selectedSize);
         if (variationQuantity > 0) {
           // This specific variation is already in cart, navigate to cart
           Get.to(() => const CartScreen());

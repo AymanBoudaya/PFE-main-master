@@ -8,10 +8,12 @@ class ProductDetailDesktopLayout extends StatelessWidget {
     super.key,
     required this.product,
     required this.dark,
+    this.excludeVariationId,
   });
 
   final ProduitModel product;
   final bool dark;
+  final String? excludeVariationId;
 
   @override
   Widget build(BuildContext context) {
@@ -32,7 +34,11 @@ class ProductDetailDesktopLayout extends StatelessWidget {
           Expanded(
             flex: 1,
             child: SingleChildScrollView(
-              child: ProductDetailsContent(product: product, dark: dark),
+              child: ProductDetailsContent(
+                product: product,
+                dark: dark,
+                excludeVariationId: excludeVariationId,
+              ),
             ),
           ),
         ],

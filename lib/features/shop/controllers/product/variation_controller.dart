@@ -1,6 +1,7 @@
 import 'package:get/get.dart';
 
 import '../../models/product_variation_model.dart';
+import '../../models/produit_model.dart';
 
 class VariationController extends GetxController {
   static VariationController get instance {
@@ -25,10 +26,20 @@ class VariationController extends GetxController {
     selectedSize.value = size;
     selectedPrice.value = price;
 
+    // Use size as the variation ID (as it matches cart item variationId)
+    // This ensures consistency between cart items and product variations
+    final variationId = size;
+
     // Create or update the variation model
     selectedVariation.value = ProductVariationModel(
-      id: size, // or a unique combination if needed
-      attributeValues: {'size': size},
+      id: variationId,
+      attributeValues: {
+        'id': variationId,
+        'taille': size,
+        'size': size, // Support both French and English keys
+        'prix': price.toString(),
+        'price': price.toString(), // Support both French and English keys
+      },
       price: price,
       salePrice: 0.0,
       stock: 10, // example or dynamic value
@@ -79,5 +90,26 @@ class VariationController extends GetxController {
     selectedVariation.value = ProductVariationModel.empty();
     // Also clear selectedSize and selectedPrice to keep UI in sync
     clearVariation();
+  }
+
+  /// -- Initialize variation from variation ID (size)
+  void initializeFromVariationId(String variationId, {double? price}) {
+    if (variationId.isEmpty) return;
+    // If price is provided, use it; otherwise try to get from selectedPrice
+    final variationPrice =
+        price ?? (selectedPrice.value > 0 ? selectedPrice.value : 0.0);
+    selectVariation(variationId, variationPrice);
+  }
+
+  /// -- Initialize variation from product and size
+  void initializeFromProductAndSize(ProduitModel product, String size) {
+    if (size.isEmpty) return;
+    // Find the size in product.sizesPrices
+    final sizePrice = product.sizesPrices.firstWhereOrNull(
+      (sp) => sp.size == size,
+    );
+    if (sizePrice != null) {
+      selectVariation(sizePrice.size, sizePrice.price);
+    }
   }
 }
