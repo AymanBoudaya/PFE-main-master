@@ -31,17 +31,9 @@ class ProductPriceDisplay extends StatelessWidget {
         unitPrice = product.salePrice > 0 ? product.salePrice : product.price;
       }
 
-      // Get quantity for the current selection (variation or product)
-      int quantity;
-      if (product.productType == 'variable' &&
-          variationController.selectedSize.value.isNotEmpty) {
-        quantity = controller.getVariationQuantityInCart(
-          product.id,
-          variationController.selectedSize.value,
-        );
-      } else {
-        quantity = controller.getProductQuantityInCart(product.id);
-      }
+      // Use temp quantity (what user is adjusting) instead of cart quantity
+      // This ensures the price updates immediately when incrementing/decrementing
+      final quantity = controller.getTempQuantity(product);
 
       final totalPrice = unitPrice * quantity;
 
