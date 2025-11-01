@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 
 import '../../../../utils/constants/colors.dart';
 import '../../../../utils/device/device_utility.dart';
@@ -10,14 +11,23 @@ import 'widgets/product_detail_desktop_layout.dart';
 import 'widgets/product_detail_mobile_layout.dart';
 
 class ProductDetailScreen extends StatelessWidget {
-  ProductDetailScreen({super.key, required this.product}) {
-    // Reset variations when screen is opened
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      VariationController.instance.resetSelectedAttributes();
-    });
+  ProductDetailScreen({
+    super.key,
+    required this.product,
+    this.skipVariationReset = false,
+  }) {
+    // Reset variations when screen is opened (unless skipping for edit mode)
+    if (!skipVariationReset) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (Get.isRegistered<VariationController>()) {
+          Get.find<VariationController>().resetSelectedAttributes();
+        }
+      });
+    }
   }
 
   final ProduitModel product;
+  final bool skipVariationReset;
 
   @override
   Widget build(BuildContext context) {

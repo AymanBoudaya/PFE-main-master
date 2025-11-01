@@ -11,6 +11,7 @@ import '../../../../common/widgets/appbar/appbar.dart';
 import '../../../../common/widgets/products/product_cards/widgets/rounded_container.dart';
 import '../../../../utils/helpers/pricing_calculator.dart';
 import '../../../personalization/controllers/address_controller.dart';
+import '../../../personalization/controllers/user_controller.dart';
 import '../../controllers/product/panier_controller.dart';
 import '../../controllers/product/order_controller.dart';
 import '../../models/produit_model.dart';
@@ -24,6 +25,7 @@ class CheckoutScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final cartController = CartController.instance;
+    UserController.instance;
     final subTotal = cartController.totalCartPrice.value;
     final orderController = Get.put(OrderController());
     final totalAmount = TPricingCalculator.calculateTotalPrice(subTotal, 'tn');

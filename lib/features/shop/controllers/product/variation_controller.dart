@@ -3,7 +3,13 @@ import 'package:get/get.dart';
 import '../../models/product_variation_model.dart';
 
 class VariationController extends GetxController {
-  static VariationController get instance => Get.find<VariationController>();
+  static VariationController get instance {
+    if (Get.isRegistered<VariationController>()) {
+      return Get.find<VariationController>();
+    }
+    // Fallback if not registered (shouldn't happen with proper binding)
+    return Get.put(VariationController(), permanent: true);
+  }
 
   /// Variables
   final RxMap<String, dynamic> selectedAttributes = <String, dynamic>{}.obs;

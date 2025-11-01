@@ -15,6 +15,7 @@ import '../features/shop/controllers/product/checkout_controller.dart';
 import '../features/shop/controllers/product/favorites_controller.dart';
 import '../features/shop/controllers/product/share_controller.dart';
 import '../features/shop/controllers/product/variation_controller.dart';
+import '../features/shop/controllers/product/panier_controller.dart';
 import '../utils/helpers/network_manager.dart';
 
 class GeneralBinding extends Bindings {
@@ -34,6 +35,7 @@ class GeneralBinding extends Bindings {
     Get.lazyPut<FavoritesController>(() => FavoritesController(), fenix: true);
     Get.lazyPut<ShareController>(() => ShareController(), fenix: true);
     Get.lazyPut<VariationController>(() => VariationController(), fenix: true);
+    Get.lazyPut<CartController>(() => CartController(), fenix: true);
     Get.lazyPut<CheckoutController>(() => CheckoutController(), fenix: true);
 
     Get.lazyPut<NetworkManager>(() => NetworkManager(), fenix: true);

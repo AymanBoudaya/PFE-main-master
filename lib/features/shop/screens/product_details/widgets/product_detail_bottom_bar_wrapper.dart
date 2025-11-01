@@ -32,17 +32,29 @@ class ProductDetailBottomBarWrapper extends StatelessWidget {
         );
         return;
       }
+      
+      // Check if the SPECIFIC variation is in cart
+      final variationId = controller.variationController.selectedVariation.value.id;
+      if (variationId.isNotEmpty) {
+        final variationQuantity = controller.getVariationQuantityInCart(product.id, variationId);
+        if (variationQuantity > 0) {
+          // This specific variation is already in cart, navigate to cart
+          Get.to(() => const CartScreen());
+          return;
+        }
+      }
+    } else {
+      // For single products, check if product is in cart
+      final quantity = controller.getProductQuantityInCart(product.id);
+      if (quantity > 0) {
+        Get.to(() => const CartScreen());
+        return;
+      }
     }
 
-    final quantity = controller.getProductQuantityInCart(product.id);
-    if (quantity == 0) {
-      // Add one item if none exists
-      final cartItem = controller.productToCartItem(product, 1);
-      controller.addOneToCart(cartItem);
-    } else {
-      // Navigate to cart screen
-      Get.to(() => const CartScreen());
-    }
+    // Add new item (either new variation or new product)
+    final cartItem = controller.productToCartItem(product, 1);
+    controller.addOneToCart(cartItem);
   }
 
   void _handleIncrement(CartController controller) {
@@ -62,7 +74,8 @@ class ProductDetailBottomBarWrapper extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final controller = CartController.instance;
+    // Use Get.find instead of instance getter to avoid issues
+    final controller = Get.find<CartController>();
 
     return ProductBottomBar(
       product: product,

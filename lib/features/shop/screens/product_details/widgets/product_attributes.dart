@@ -19,11 +19,18 @@ class TProductAttributes extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final variationController = Get.find<VariationController>(tag: tag);
+    // Use Get.find safely - VariationController should be registered
+    final variationController = tag != null
+        ? Get.find<VariationController>(tag: tag)
+        : Get.find<VariationController>();
+    final cartController = Get.find<CartController>();
     final dark = THelperFunctions.isDarkMode(context);
 
     return Obx(() {
       final selectedSize = variationController.selectedSize.value;
+      
+      // Cache variations in cart for this product to avoid repeated lookups
+      final variationsInCartSet = cartController.getVariationsInCartSet(product.id);
 
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -36,34 +43,48 @@ class TProductAttributes extends StatelessWidget {
             runSpacing: 8,
             children: product.sizesPrices.map((sp) {
               final bool isSelected = selectedSize == sp.size;
+              final bool isInCart = variationsInCartSet.contains(sp.size);
+              
               return ChoiceChip(
                 label: Text(
-                  '${sp.size} (${sp.price.toStringAsFixed(2)} DT)',
+                  '${sp.size} (${sp.price.toStringAsFixed(2)} DT)${isInCart ? ' ✓' : ''}',
                   style: TextStyle(
-                    color: isSelected
-                        ? Colors.white
-                        : (dark ? Colors.white70 : Colors.black87),
+                    color: isInCart && !isSelected
+                        ? Colors.grey.shade500
+                        : (isSelected
+                            ? Colors.white
+                            : (dark ? Colors.white70 : Colors.black87)),
                   ),
                 ),
                 selected: isSelected,
                 selectedColor: AppColors.primary,
-                backgroundColor:
-                    dark ? AppColors.darkerGrey : AppColors.lightGrey,
+                backgroundColor: isInCart && !isSelected
+                    ? (dark ? Colors.grey.shade800.withOpacity(0.5) : Colors.grey.shade300)
+                    : (dark ? AppColors.darkerGrey : AppColors.lightGrey),
+                disabledColor: dark ? Colors.grey.shade800.withOpacity(0.5) : Colors.grey.shade300,
+                labelStyle: TextStyle(
+                  decoration: isInCart && !isSelected ? TextDecoration.lineThrough : null,
+                ),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),
                 ),
-                onSelected: (bool selected) {
-                  if (selected) {
-                    variationController.selectVariation(sp.size, sp.price);
-                    CartController.instance.updateVariation(
-                      product.id,
-                      variationController.selectedSize.value,
-                      variationController.selectedPrice.value,
-                    );
-                  } else {
-                    variationController.clearVariation();
-                  }
-                },
+                avatar: isInCart && !isSelected
+                    ? Icon(Icons.check_circle, size: 16, color: Colors.grey.shade500)
+                    : null,
+                onSelected: isInCart && !isSelected
+                    ? null
+                    : (bool selected) {
+                        if (selected) {
+                          variationController.selectVariation(sp.size, sp.price);
+                          cartController.updateVariation(
+                            product.id,
+                            variationController.selectedSize.value,
+                            variationController.selectedPrice.value,
+                          );
+                        } else {
+                          variationController.clearVariation();
+                        }
+                      },
               );
             }).toList(),
           ),
