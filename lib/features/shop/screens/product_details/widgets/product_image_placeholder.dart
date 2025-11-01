@@ -11,9 +11,7 @@ class ProductImagePlaceholder extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: TAppBar(),
-      body: Container(
+    return Container(
         height: 400,
         margin: const EdgeInsets.all(16),
         decoration: BoxDecoration(
@@ -111,7 +109,6 @@ class ProductImagePlaceholder extends StatelessWidget {
             ),
           ],
         ),
-      ),
     );
   }
 }

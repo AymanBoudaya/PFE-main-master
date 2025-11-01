@@ -20,6 +20,8 @@ class ProductDetailMobileLayout extends StatelessWidget {
   Widget build(BuildContext context) {
     return SingleChildScrollView(
       child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           /// 1 - Product Image Section
           ProductImageSection(product: product, dark: dark),

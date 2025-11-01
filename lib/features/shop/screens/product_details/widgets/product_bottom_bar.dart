@@ -60,7 +60,11 @@ class ProductBottomBar extends StatelessWidget {
     return Row(
       children: [
         /// Price Display
-        ProductPriceDisplay(product: product, dark: dark),
+        Flexible(
+          child: ProductPriceDisplay(product: product, dark: dark),
+        ),
+
+        const SizedBox(width: 12),
 
         /// Quantity Controls
         ProductQuantityControls(
@@ -128,26 +132,25 @@ class ProductBottomBar extends StatelessWidget {
             child: ProductPriceDisplay(product: product, dark: dark),
           ),
 
-          /// Quantity Controls & Add to Cart
-          Flexible(
+          const SizedBox(width: 8),
+
+          /// Quantity Controls
+          ProductQuantityControls(
+            product: product,
+            dark: dark,
+            onDecrement: onDecrement,
+            onIncrement: onIncrement,
+          ),
+
+          const SizedBox(width: 8),
+
+          /// Add to Cart Button
+          Expanded(
             flex: 2,
-            child: Row(
-              children: [
-                ProductQuantityControls(
-                  product: product,
-                  dark: dark,
-                  onDecrement: onDecrement,
-                  onIncrement: onIncrement,
-                ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: ProductMainActionButton(
-                    product: product,
-                    isSmallScreen: isSmallScreen,
-                    onTap: onMainAction,
-                  ),
-                ),
-              ],
+            child: ProductMainActionButton(
+              product: product,
+              isSmallScreen: isSmallScreen,
+              onTap: onMainAction,
             ),
           ),
         ],

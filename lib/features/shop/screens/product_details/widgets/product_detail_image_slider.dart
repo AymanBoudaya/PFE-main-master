@@ -31,6 +31,10 @@ class TProductImageSlider extends StatelessWidget {
     return TCurvedEdgeWidget(
         child: Container(
             color: dark ? AppColors.darkGrey : AppColors.light,
+            constraints: const BoxConstraints(
+              minHeight: 400,
+              maxHeight: 600,
+            ),
             child: Stack(
               children: [
                 /// Main Large Image

@@ -232,6 +232,24 @@ class TCartItems extends StatelessWidget {
       return;
     }
 
+    // Pre-select the variation and initialize temp quantity BEFORE navigating
+    final variationController = Get.find<VariationController>();
+    if (cartItem.variationId.isNotEmpty) {
+      // Find the size and price for this variation
+      final sizePrice = product.sizesPrices.firstWhereOrNull(
+        (sp) => sp.size == cartItem.variationId,
+      );
+
+      if (sizePrice != null) {
+        // Select the variation first
+        variationController.selectVariation(sizePrice.size, sizePrice.price);
+        
+        // Initialize temp quantity with the current cart item's quantity
+        // This ensures the quantity controls show the correct value
+        controller.updateTempQuantity(product, cartItem.quantity);
+      }
+    }
+
     // Navigate to product detail in edit mode
     Get.to(() => ProductDetailScreen(
           product: product,

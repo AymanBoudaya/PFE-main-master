@@ -173,15 +173,22 @@ class CartController extends GetxController {
       'prix': price.toString(),
     };
 
+    // Get the temp quantity (user may have modified it)
+    final tempQuantity = getTempQuantity(product);
+    final finalQuantity = tempQuantity > 0 ? tempQuantity : item.quantity;
+
     cartItems[currentIndex] = item.copyWith(
       variationId: selectedSize,
       price: price,
+      quantity: finalQuantity, // Update quantity if changed
       selectedVariation: newVariation,
       image: variation.image.isEmpty || variation.image == ''
           ? item.image
           : variation.image,
     );
 
+    // Reset temp quantity after modification
+    updateTempQuantity(product, 0);
     updateCart();
     TLoaders.customToast(message: 'Variante modifiée avec succès');
     Get.back(); // Retourner à l'écran précédent
@@ -283,7 +290,10 @@ class CartController extends GetxController {
         cartItem.variationId == item.variationId);
 
     if (index >= 0) {
-      cartItems[index].quantity++;
+      // Create new instance to trigger reactivity
+      cartItems[index] = cartItems[index].copyWith(
+        quantity: cartItems[index].quantity + 1,
+      );
     } else {
       cartItems.add(item);
     }
@@ -297,9 +307,13 @@ class CartController extends GetxController {
 
     if (index >= 0) {
       if (cartItems[index].quantity > 1) {
-        cartItems[index].quantity--;
+        // Create new instance to trigger reactivity
+        cartItems[index] = cartItems[index].copyWith(
+          quantity: cartItems[index].quantity - 1,
+        );
       } else {
         removeFromCartDialog(index);
+        return; // Don't call updateCart() here, it's called in removeFromCartDialog
       }
       updateCart();
     }

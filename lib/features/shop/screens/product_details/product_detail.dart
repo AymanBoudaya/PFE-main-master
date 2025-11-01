@@ -4,6 +4,7 @@ import 'package:get/get.dart';
 import '../../../../utils/constants/colors.dart';
 import '../../../../utils/device/device_utility.dart';
 import '../../../../utils/helpers/helper_functions.dart';
+import '../../controllers/product/panier_controller.dart';
 import '../../controllers/product/variation_controller.dart';
 import '../../models/produit_model.dart';
 import 'widgets/product_detail_bottom_bar_wrapper.dart';
@@ -29,16 +30,33 @@ class ProductDetailScreen extends StatelessWidget {
         }
       });
     } else if (isEditMode && initialVariationId != null) {
-      // In edit mode, initialize with the current variation
+      // In edit mode, initialize with the current variation and quantity
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (Get.isRegistered<VariationController>()) {
-          final controller = Get.find<VariationController>();
+          final variationController = Get.find<VariationController>();
+          final cartController = Get.find<CartController>();
+          
           // Find the size and price for this variation
           final sizePrice = product.sizesPrices.firstWhereOrNull(
             (sp) => sp.size == initialVariationId,
           );
           if (sizePrice != null) {
-            controller.selectVariation(sizePrice.size, sizePrice.price);
+            // Select the variation
+            variationController.selectVariation(sizePrice.size, sizePrice.price);
+            
+            // Initialize temp quantity with the current cart item's quantity if not already set
+            // This ensures quantity controls show the correct value
+            final currentTempQuantity = cartController.getTempQuantity(product);
+            if (currentTempQuantity == 0) {
+              // Get the quantity from cart for this variation
+              final cartQuantity = cartController.getVariationQuantityInCart(
+                product.id,
+                initialVariationId!,
+              );
+              if (cartQuantity > 0) {
+                cartController.updateTempQuantity(product, cartQuantity);
+              }
+            }
           }
         }
       });

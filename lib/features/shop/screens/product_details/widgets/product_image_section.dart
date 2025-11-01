@@ -17,9 +17,15 @@ class ProductImageSection extends StatelessWidget {
   Widget build(BuildContext context) {
     final hasImage = product.imageUrl.isNotEmpty;
 
-    return hasImage
-        ? TProductImageSlider(product: product)
-        : ProductImagePlaceholder(dark: dark);
+    return ConstrainedBox(
+      constraints: const BoxConstraints(
+        minHeight: 300,
+        maxHeight: 500,
+      ),
+      child: hasImage
+          ? TProductImageSlider(product: product)
+          : ProductImagePlaceholder(dark: dark),
+    );
   }
 }
 

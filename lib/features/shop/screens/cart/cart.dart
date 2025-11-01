@@ -5,10 +5,12 @@ import 'package:caferesto/features/shop/screens/checkout/checkout.dart';
 import 'package:caferesto/utils/constants/sizes.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:iconsax/iconsax.dart';
 
 import '../../../../common/widgets/appbar/appbar.dart';
 import '../../../../navigation_menu.dart';
 import '../../../../utils/constants/image_strings.dart';
+import '../../../../utils/popups/loaders.dart';
 import '../../../../utils/loaders/animation_loader.dart';
 import 'widgets/cart_items.dart';
 
@@ -30,6 +32,16 @@ class CartScreen extends StatelessWidget {
           title:
               Text('Panier', style: Theme.of(context).textTheme.headlineSmall),
           showBackArrow: true,
+          actions: [
+            Obx(() {
+              if (controller.cartItems.isEmpty) return const SizedBox.shrink();
+              return IconButton(
+                icon: const Icon(Iconsax.trash),
+                tooltip: 'Vider le panier',
+                onPressed: () => _showDeleteAllDialog(context, controller),
+              );
+            }),
+          ],
         ),
         body: Obx(() {
           if (controller.cartItems.isEmpty) {
@@ -236,5 +248,33 @@ class CartScreen extends StatelessWidget {
         }),
       );
     });
+  }
+
+  void _showDeleteAllDialog(BuildContext context, CartController controller) {
+    Get.dialog(
+      AlertDialog(
+        title: const Text('Vider le panier'),
+        content: const Text(
+          'Êtes-vous sûr de vouloir supprimer tous les articles du panier ?',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Get.back(),
+            child: const Text('Annuler'),
+          ),
+          TextButton(
+            onPressed: () {
+              controller.clearCart();
+              Get.back();
+              TLoaders.customToast(message: 'Panier vidé');
+            },
+            style: TextButton.styleFrom(
+              foregroundColor: Colors.red,
+            ),
+            child: const Text('Supprimer'),
+          ),
+        ],
+      ),
+    );
   }
 }

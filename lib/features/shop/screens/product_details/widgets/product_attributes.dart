@@ -41,6 +41,7 @@ class TProductAttributes extends StatelessWidget {
 
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
         children: [
           const TSectionHeading(
             title: 'Tailles disponibles',
