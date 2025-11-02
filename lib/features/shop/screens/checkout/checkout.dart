@@ -344,7 +344,7 @@ class CheckoutScreen extends StatelessWidget {
     double totalAmount,
     BuildContext context,
   ) {
-    final cartController = Get.find<CartController>();
+    final cartController = CartController.instance;
     final addressController = Get.find<AddressController>();
 
     // Vérifier adresse
@@ -379,16 +379,29 @@ class CheckoutScreen extends StatelessWidget {
     final etablissementId = cartController.cartItems.first.etablissementId;
     final selectedAddressId = addressController.selectedAddress.value.id;
 
+    // Calculate pickupDateTime based on selected day
     final now = DateTime.now();
+    final selectedDayName = orderController.selectedDay.value!;
+    
+    // Convert day name to JourSemaine enum and get weekday
+    final jourSemaine = THelperFunctions.stringToJourSemaine(selectedDayName);
+    final targetWeekday = THelperFunctions.weekdayFromJour(jourSemaine);
+    final daysToAdd = (targetWeekday - now.weekday + 7) % 7;
+    // If today and it's late (after 10 PM), move to next week
+    final chosenDate = daysToAdd == 0 && now.hour >= 22 
+        ? now.add(const Duration(days: 7))
+        : now.add(Duration(days: daysToAdd));
+    
     final startParts = orderController.selectedSlot.value!
         .split(' - ')[0]
         .split(':')
         .map(int.parse)
         .toList();
+    
     final pickupDateTime = DateTime(
-      now.year,
-      now.month,
-      now.day,
+      chosenDate.year,
+      chosenDate.month,
+      chosenDate.day,
       startParts[0],
       startParts[1],
     );

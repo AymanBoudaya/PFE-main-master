@@ -324,101 +324,34 @@ class TimeSlotModal {
     BuildContext context,
   ) async {
     try {
-      // Vérifier si le panier est vide
-      if (cartController.cartItems.isEmpty) {
-        Get.snackbar(
-          "Panier vide",
-          "Veuillez ajouter des produits au panier avant de confirmer la commande",
-          backgroundColor: Colors.red,
-          colorText: Colors.white,
-        );
-        return;
-      }
-
       // Vérifier qu'un créneau est sélectionné
       if (orderController.selectedDay.value == null ||
           orderController.selectedSlot.value == null) {
         Get.snackbar(
           "Créneau manquant",
-          "Veuillez sélectionner un jour et un créneau avant de confirmer",
+          "Veuillez sélectionner un jour et un créneau",
           backgroundColor: Colors.red,
           colorText: Colors.white,
         );
         return;
       }
 
-      // Récupérer le créneau horaire correspondant
-      Horaire? selectedHoraire;
-      try {
-        selectedHoraire = horaireController.horaires.firstWhere(
-          (h) => h.jour.valeur == orderController.selectedDay.value,
-        );
-      } catch (e) {
-        selectedHoraire = null;
-      }
-
-      if (selectedHoraire == null) {
-        Get.snackbar(
-          "Erreur",
-          "Impossible de trouver le créneau horaire sélectionné",
-          backgroundColor: Colors.red,
-          colorText: Colors.white,
-        );
-        return;
-      }
-
-      final now = DateTime.now();
-      final targetWeekday =
-          THelperFunctions.weekdayFromJour(selectedHoraire.jour);
-      final daysToAdd = (targetWeekday - now.weekday + 7) % 7;
-      final chosenDate = now.add(Duration(days: daysToAdd));
-
-      final startParts = orderController.selectedSlot.value!
-          .split(' - ')[0]
-          .split(':')
-          .map(int.parse)
-          .toList();
-
-      final pickupDateTime = DateTime(
-        chosenDate.year,
-        chosenDate.month,
-        chosenDate.day,
-        startParts[0],
-        startParts[1],
-      );
-
-      // Récupérer l'etablissementId depuis le panier en toute sécurité
-      final etablissementId = cartController.cartItems.first.etablissementId;
-      if (etablissementId.isEmpty) {
-        Get.snackbar(
-          "Erreur",
-          "Impossible de déterminer l'établissement pour cette commande",
-          backgroundColor: Colors.red,
-          colorText: Colors.white,
-        );
-        return;
-      }
-
+      // Just close the modal and keep the selected slot
+      // Order will be created only when user presses "Commander" button in checkout screen
       Navigator.of(context).pop();
 
-      await orderController.processOrder(
-        totalAmount: cartController.totalCartPrice.value,
-        pickupDateTime: pickupDateTime,
-        pickupDay: orderController.selectedDay.value!,
-        pickupTimeRange: orderController.selectedSlot.value!,
-        etablissementId: etablissementId,
-      );
-
+      // Show confirmation snackbar
       Get.snackbar(
-        "Commande enregistrée ✅",
-        "Créneau : ${orderController.selectedDay.value!} (${orderController.selectedSlot.value!})",
+        "Créneau sélectionné ✅",
+        "${orderController.selectedDay.value!} - ${orderController.selectedSlot.value!}",
         backgroundColor: Colors.green,
         colorText: Colors.white,
+        duration: const Duration(seconds: 2),
       );
     } catch (e) {
       Get.snackbar(
         "Erreur",
-        "Impossible de confirmer la commande: $e",
+        "Impossible de sélectionner le créneau: $e",
         backgroundColor: Colors.red,
         colorText: Colors.white,
       );
