@@ -10,7 +10,7 @@ class CartAppBar extends StatelessWidget implements PreferredSizeWidget {
 
   @override
   Widget build(BuildContext context) {
-    final controller = Get.find<CartController>();
+    final controller = CartController.instance;
     return TAppBar(
       title: Text('Panier', style: Theme.of(context).textTheme.headlineSmall),
       showBackArrow: true,

@@ -16,7 +16,14 @@ import 'panier_controller.dart';
 import 'checkout_controller.dart';
 
 class OrderController extends GetxController {
-  static OrderController get instance => Get.find();
+  static OrderController get instance {
+    try {
+      return Get.find<OrderController>();
+    } catch (e) {
+      // If not found, create it (shouldn't happen if GeneralBinding is used)
+      return Get.put(OrderController());
+    }
+  }
 
   final orderRepository = Get.put(OrderRepository());
   final cartController = CartController.instance;
@@ -46,7 +53,7 @@ class OrderController extends GetxController {
 
   void listenToUserOrders() {
     final userId = userController.user.value.id;
-    if (userId == null) return;
+    if (userId.isEmpty) return;
 
     isLoading.value = true;
 
@@ -184,7 +191,12 @@ class OrderController extends GetxController {
         table: 'orders',
         callback: (payload) {
           try {
-            if (payload.newRecord == null) return;
+            final eventType = payload.eventType;
+            // Only process INSERT and UPDATE events (DELETE events don't have newRecord)
+            if (eventType != PostgresChangeEvent.insert &&
+                eventType != PostgresChangeEvent.update) {
+              return;
+            }
 
             final updatedOrder = OrderModel.fromJson(payload.newRecord);
             final index = orders.indexWhere((o) => o.id == updatedOrder.id);

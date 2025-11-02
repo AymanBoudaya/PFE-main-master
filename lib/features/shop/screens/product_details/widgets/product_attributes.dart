@@ -25,14 +25,16 @@ class TProductAttributes extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Safe access to controllers
-    final variationController = tag != null
-        ? Get.find<VariationController>(tag: tag)
-        : Get.find<VariationController>();
-    final cartController = Get.find<CartController>();
+    // Safe access to controllers using instance getters
+    final variationController = VariationController.instance;
+    final cartController = CartController.instance;
     final dark = THelperFunctions.isDarkMode(context);
 
     return Obx(() {
+      // Safety check: ensure controllers are initialized
+      if (!Get.isRegistered<VariationController>() || !Get.isRegistered<CartController>()) {
+        return const SizedBox.shrink();
+      }
       final selectedSize = variationController.selectedSize.value;
 
       // ✅ Ensemble des variations déjà ajoutées au panier

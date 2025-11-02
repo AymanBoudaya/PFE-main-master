@@ -13,19 +13,45 @@ import '../../../models/produit_model.dart';
 class TimeSlotModal {
   Future<void> openTimeSlotModal(
       BuildContext context, bool dark, ProduitModel product) async {
-    final orderController = Get.put(OrderController());
+    // Use instance getter which handles creation if needed
+    final orderController = OrderController.instance;
+    
     final cartController = CartController.instance;
-    final horaireController = Get.put(HoraireController(HoraireRepository()));
+    
+    // Use Get.put with tag or find if exists to avoid duplicates
+    HoraireController horaireController;
+    try {
+      horaireController = Get.find<HoraireController>();
+      // If found but for different etablissement, fetch new ones
+    } catch (e) {
+      horaireController = Get.put(HoraireController(HoraireRepository()), tag: null);
+    }
 
     // Charger les horaires
-    await horaireController.fetchHoraires(product.etablissementId);
+    final horairesResult = await horaireController.fetchHoraires(product.etablissementId);
 
-    if (horaireController.horaires.isEmpty) {
+    // Check if fetchHoraires failed (returned null) or list is empty
+    if (horairesResult == null || horairesResult.isEmpty) {
       Get.snackbar(
         "Aucun horaire disponible",
-        "L’établissement n’a pas encore défini ses horaires.",
+        "L'établissement n'a pas encore défini ses horaires.",
         backgroundColor: Colors.redAccent,
         colorText: Colors.white,
+      );
+      return;
+    }
+
+    // Check if there are any valid (open) horaires
+    // The list might have 7 items but all closed - that's different from "not defined"
+    final hasValidHoraires = horaireController.horaires.any((h) => h.isValid);
+    
+    if (!hasValidHoraires) {
+      Get.snackbar(
+        "Aucun créneau disponible",
+        "L'établissement est actuellement fermé. Veuillez choisir un autre jour ou contacter l'établissement.",
+        backgroundColor: Colors.orange,
+        colorText: Colors.white,
+        duration: const Duration(seconds: 4),
       );
       return;
     }
@@ -93,7 +119,9 @@ class TimeSlotModal {
       }
 
       final horaires = horaireController.horaires;
-      if (horaires.isEmpty) {
+      // Check for valid horaires (open days), not just if list is empty
+      final hasValidHoraires = horaires.any((h) => h.isValid);
+      if (horaires.isEmpty || !hasValidHoraires) {
         return const Padding(
           padding: EdgeInsets.all(24.0),
           child: Center(child: Text("Aucun créneau disponible")),
@@ -361,7 +389,7 @@ class TimeSlotModal {
 
       // Récupérer l'etablissementId depuis le panier en toute sécurité
       final etablissementId = cartController.cartItems.first.etablissementId;
-      if (etablissementId == null || etablissementId.isEmpty) {
+      if (etablissementId.isEmpty) {
         Get.snackbar(
           "Erreur",
           "Impossible de déterminer l'établissement pour cette commande",

@@ -87,8 +87,8 @@ class ProductDetailBottomBarWrapper extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Use Get.find instead of instance getter to avoid issues
-    final controller = Get.find<CartController>();
+    // Use safe instance getter
+    final controller = CartController.instance;
 
     return ProductBottomBar(
       product: product,

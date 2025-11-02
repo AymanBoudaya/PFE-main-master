@@ -17,9 +17,13 @@ class ProductMainActionButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final controller = Get.find<CartController>();
+    final controller = CartController.instance;
 
     return Obx(() {
+      // Safety check: ensure controller is initialized
+      if (!Get.isRegistered<CartController>()) {
+        return const SizedBox.shrink();
+      }
       final quantity = controller.getProductQuantityInCart(product.id);
       final hasItems = quantity > 0;
 

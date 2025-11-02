@@ -29,11 +29,15 @@ class TCartItems extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Get controller once outside Obx to avoid repeated lookups
-    final controller = Get.find<CartController>();
+    // Get controller once outside Obx to avoid repeated lookups using safe instance getter
+    final controller = CartController.instance;
     final dark = THelperFunctions.isDarkMode(context);
 
     return Obx(() {
+      // Safety check: ensure controller is initialized
+      if (!Get.isRegistered<CartController>()) {
+        return const SizedBox.shrink();
+      }
       final items = controller.cartItems;
       return ListView.separated(
         shrinkWrap: true,
@@ -216,7 +220,7 @@ class TCartItems extends StatelessWidget {
     }
 
     // Find the cart item index
-    final controller = Get.find<CartController>();
+    final controller = CartController.instance;
     final cartItemIndex = controller.cartItems.indexWhere(
       (item) =>
           item.productId == cartItem.productId &&
@@ -234,7 +238,7 @@ class TCartItems extends StatelessWidget {
     }
 
     // Pre-select the variation and initialize temp quantity BEFORE navigating
-    final variationController = Get.find<VariationController>();
+    final variationController = VariationController.instance;
     if (cartItem.variationId.isNotEmpty) {
       // Find the size and price for this variation
       final sizePrice = product.sizesPrices.firstWhereOrNull(
@@ -278,12 +282,12 @@ class TCartItems extends StatelessWidget {
     }
 
     // Reset variation selection for a fresh start
-    final variationController = Get.find<VariationController>();
+    final variationController = VariationController.instance;
     variationController.resetSelectedAttributes();
 
     // Reset temp quantity for this product when adding a new variation
     // This ensures the quantity starts fresh (at 0) for the new variation
-    final controller = Get.find<CartController>();
+    final controller = CartController.instance;
     controller.resetTempQuantityForProduct(product.id);
 
     // Navigate to product detail

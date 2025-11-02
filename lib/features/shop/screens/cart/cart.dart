@@ -1,4 +1,3 @@
-import 'dart:math';
 import 'package:caferesto/features/shop/controllers/product/panier_controller.dart';
 import 'package:caferesto/features/shop/screens/checkout/checkout.dart';
 import 'package:caferesto/utils/constants/sizes.dart';
@@ -18,17 +17,17 @@ class CartScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final controller = Get.find<CartController>();
-    final screenHeight = MediaQuery.of(context).size.height;
+    final controller = CartController.instance;
 
-    return LayoutBuilder(builder: (context, constraints) {
-      final availableHeight =
-          constraints.maxHeight.isFinite ? constraints.maxHeight : screenHeight;
-      final animationHeight = max(180.0, min(availableHeight * 1, 320.0));
-
-      return Scaffold(
+    return Scaffold(
         appBar: CartAppBar(onDeletePressed: () {
-          DeleteAllBottomSheet(controller: controller);
+          showModalBottomSheet(
+            context: context,
+            shape: const RoundedRectangleBorder(
+              borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+            ),
+            builder: (_) => DeleteAllBottomSheet(controller: controller),
+          );
         }),
         body: Obx(() {
           if (controller.cartItems.isEmpty) {
@@ -54,6 +53,5 @@ class CartScreen extends StatelessWidget {
           });
         }),
       );
-    });
   }
 }

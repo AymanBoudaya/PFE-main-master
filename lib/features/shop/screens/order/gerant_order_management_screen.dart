@@ -24,7 +24,7 @@ class GerantOrderManagementScreen extends StatefulWidget {
 class _GerantOrderManagementScreenState
     extends State<GerantOrderManagementScreen>
     with SingleTickerProviderStateMixin {
-  final OrderController orderController = Get.put(OrderController());
+  final OrderController orderController = OrderController.instance;
   final UserController userController = Get.find<UserController>();
 
   late TabController _tabController;

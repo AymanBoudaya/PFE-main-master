@@ -8,7 +8,14 @@ import '../../models/produit_model.dart';
 import 'variation_controller.dart';
 
 class CartController extends GetxController {
-  static CartController get instance => Get.find<CartController>();
+  static CartController get instance {
+    try {
+      return Get.find<CartController>();
+    } catch (e) {
+      // If not found, create it (shouldn't happen with proper binding)
+      return Get.put(CartController(), permanent: true);
+    }
+  }
 
   RxInt cartItemsCount = 0.obs;
   RxDouble totalCartPrice = 0.0.obs;

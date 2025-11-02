@@ -6,7 +6,7 @@ import '../product/order_controller.dart';
 
 class OrderListController extends GetxController
     with GetTickerProviderStateMixin {
-  final orderController = Get.find<OrderController>();
+  final orderController = OrderController.instance;
 
   late TabController tabController;
   final List<String> tabLabels = ['Toutes', 'Actives', 'Terminées'];
