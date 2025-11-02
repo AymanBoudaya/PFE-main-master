@@ -1,17 +1,16 @@
 import 'dart:math';
-
 import 'package:caferesto/features/shop/controllers/product/panier_controller.dart';
 import 'package:caferesto/features/shop/screens/checkout/checkout.dart';
 import 'package:caferesto/utils/constants/sizes.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:iconsax/iconsax.dart';
 
-import '../../../../common/widgets/appbar/appbar.dart';
-import '../../../../navigation_menu.dart';
-import '../../../../utils/constants/image_strings.dart';
-import '../../../../utils/popups/loaders.dart';
-import '../../../../utils/loaders/animation_loader.dart';
+import 'cart_widgets/cart_appbar.dart';
+import 'cart_widgets/cart_bottom_section.dart';
+import 'cart_widgets/cart_header.dart';
+import 'cart_widgets/delete_cart_bottomsheet.dart';
+import 'cart_widgets/empty_cart_view.dart';
+
 import 'widgets/cart_items.dart';
 
 class CartScreen extends StatelessWidget {
@@ -25,75 +24,19 @@ class CartScreen extends StatelessWidget {
     return LayoutBuilder(builder: (context, constraints) {
       final availableHeight =
           constraints.maxHeight.isFinite ? constraints.maxHeight : screenHeight;
-      final animationHeight =
-          max(180.0, min(availableHeight * 1, 320.0)); // 180–320px range
+      final animationHeight = max(180.0, min(availableHeight * 1, 320.0));
+
       return Scaffold(
-        appBar: TAppBar(
-          title:
-              Text('Panier', style: Theme.of(context).textTheme.headlineSmall),
-          showBackArrow: true,
-          actions: [
-            Obx(() {
-              if (controller.cartItems.isEmpty) return const SizedBox.shrink();
-              return IconButton(
-                icon: const Icon(Iconsax.trash),
-                tooltip: 'Vider le panier',
-                onPressed: () => _showDeleteAllDialog(context, controller),
-              );
-            }),
-          ],
-        ),
+        appBar: CartAppBar(onDeletePressed: () {
+          DeleteAllBottomSheet(controller: controller);
+        }),
         body: Obx(() {
           if (controller.cartItems.isEmpty) {
-            return Center(
-              child: Padding(
-                padding: const EdgeInsets.all(AppSizes.defaultSpace),
-                child: SizedBox(
-                  height: animationHeight,
-                  width: min(animationHeight * 1.2, 400),
-                  child: FittedBox(
-                    fit: BoxFit.contain,
-                    child: TAnimationLoaderWidget(
-                      text: "Votre panier est vide !",
-                      animation: TImages.pencilAnimation,
-                      showAction: true,
-                      actionText: 'Explorer les produits',
-                      onActionPressed: () =>
-                          Get.off(() => const NavigationMenu()),
-                    ),
-                  ),
-                ),
-              ),
-            );
+            return const EmptyCartView();
           }
-
           return Column(
             children: [
-              // Header with item count
-              Padding(
-                padding: const EdgeInsets.all(AppSizes.defaultSpace),
-                child: Row(
-                  children: [
-                    Text(
-                      'Votre sélection',
-                      style:
-                          Theme.of(context).textTheme.headlineSmall?.copyWith(
-                                fontWeight: FontWeight.w600,
-                              ),
-                    ),
-                    const Spacer(),
-                    Obx(() => Text(
-                          '${controller.cartItemsCount.value} ${controller.cartItemsCount.value > 1 ? 'articles' : 'article'}',
-                          style:
-                              Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                    color: Colors.grey.shade600,
-                                  ),
-                        )),
-                  ],
-                ),
-              ),
-
-              // Cart items list
+              const CartHeader(),
               Expanded(
                 child: SingleChildScrollView(
                   padding: const EdgeInsets.symmetric(
@@ -104,177 +47,13 @@ class CartScreen extends StatelessWidget {
             ],
           );
         }),
-        // Bottom checkout section - hidden when empty
         bottomNavigationBar: Obx(() {
           if (controller.cartItems.isEmpty) return const SizedBox.shrink();
-
-          return Container(
-            padding: const EdgeInsets.symmetric(
-              horizontal: AppSizes.defaultSpace,
-              vertical: AppSizes.spaceBtwItems,
-            ),
-            decoration: BoxDecoration(
-              color: Theme.of(context).scaffoldBackgroundColor,
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.1),
-                  blurRadius: 12,
-                  offset: const Offset(0, -4),
-                ),
-              ],
-              borderRadius: const BorderRadius.only(
-                topLeft: Radius.circular(16),
-                topRight: Radius.circular(16),
-              ),
-            ),
-            child: SafeArea(
-              child: LayoutBuilder(
-                builder: (context, constraints) {
-                  final isSmallScreen = constraints.maxWidth < 380;
-                  
-                  if (isSmallScreen) {
-                    // Vertical layout for small screens
-                    return Column(
-                      mainAxisSize: MainAxisSize.min,
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        // Total price
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text(
-                              'Total',
-                              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                    color: Colors.grey.shade600,
-                                  ),
-                            ),
-                            Obx(() => Text(
-                                  '${controller.totalCartPrice.value.toStringAsFixed(2)} DT',
-                                  style: Theme.of(context)
-                                      .textTheme
-                                      .titleLarge
-                                      ?.copyWith(
-                                        fontWeight: FontWeight.w700,
-                                      ),
-                                )),
-                          ],
-                        ),
-                        const SizedBox(height: AppSizes.spaceBtwItems),
-                        // Checkout button - full width
-                        SizedBox(
-                          width: double.infinity,
-                          child: ElevatedButton(
-                            onPressed: () => Get.to(() => const CheckoutScreen()),
-                            style: ElevatedButton.styleFrom(
-                              padding: const EdgeInsets.symmetric(vertical: 14),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                              elevation: 2,
-                            ),
-                            child: Text(
-                              'Résumé de la commande',
-                              style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                                    color: Colors.white,
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                              textAlign: TextAlign.center,
-                            ),
-                          ),
-                        ),
-                      ],
-                    );
-                  } else {
-                    // Horizontal layout for larger screens
-                    return Row(
-                      children: [
-                        // Total price
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Text(
-                                'Total',
-                                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                      color: Colors.grey.shade600,
-                                    ),
-                              ),
-                              const SizedBox(height: 4),
-                              Obx(() => Text(
-                                    '${controller.totalCartPrice.value.toStringAsFixed(2)} DT',
-                                    style: Theme.of(context)
-                                        .textTheme
-                                        .headlineSmall
-                                        ?.copyWith(
-                                          fontWeight: FontWeight.w700,
-                                        ),
-                                  )),
-                            ],
-                          ),
-                        ),
-                        const SizedBox(width: AppSizes.spaceBtwItems),
-                        // Checkout button
-                        Expanded(
-                          flex: 2,
-                          child: ElevatedButton(
-                            onPressed: () => Get.to(() => const CheckoutScreen()),
-                            style: ElevatedButton.styleFrom(
-                              padding: const EdgeInsets.symmetric(vertical: 16),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                              elevation: 2,
-                            ),
-                            child: FittedBox(
-                              fit: BoxFit.scaleDown,
-                              child: Text(
-                                'Résumé de la commande',
-                                style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                                      color: Colors.white,
-                                      fontWeight: FontWeight.w600,
-                                    ),
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
-                    );
-                  }
-                },
-              ),
-            ),
-          );
+          return CartBottomSection(onCheckoutPressed: () {
+            Get.to(() => const CheckoutScreen());
+          });
         }),
       );
     });
-  }
-
-  void _showDeleteAllDialog(BuildContext context, CartController controller) {
-    Get.dialog(
-      AlertDialog(
-        title: const Text('Vider le panier'),
-        content: const Text(
-          'Êtes-vous sûr de vouloir supprimer tous les articles du panier ?',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Get.back(),
-            child: const Text('Annuler'),
-          ),
-          TextButton(
-            onPressed: () {
-              controller.clearCart();
-              Get.back();
-              TLoaders.customToast(message: 'Panier vidé');
-            },
-            style: TextButton.styleFrom(
-              foregroundColor: Colors.red,
-            ),
-            child: const Text('Supprimer'),
-          ),
-        ],
-      ),
-    );
   }
 }

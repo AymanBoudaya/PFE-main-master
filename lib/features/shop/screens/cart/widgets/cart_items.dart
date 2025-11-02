@@ -11,6 +11,7 @@ import '../../../models/cart_item_model.dart';
 import '../../product_details/product_detail.dart';
 import 'cart_item_image.dart';
 import 'cart_item_quantity_controls.dart';
+import 'cart_item_variant_buttons.dart';
 
 class TCartItems extends StatelessWidget {
   const TCartItems({
@@ -79,7 +80,7 @@ class TCartItems extends StatelessWidget {
                           ),
 
                           /// Current Variation Display
-                          if (cartItem.selectedVariation != null &&
+                          if (cartItem.product?.productType == 'variable' && cartItem.selectedVariation != null &&
                               cartItem.selectedVariation!.isNotEmpty) ...[
                             const SizedBox(height: 4),
                             Text(
@@ -99,7 +100,7 @@ class TCartItems extends StatelessWidget {
                           if (cartItem.product?.productType == 'variable' &&
                               !isCheckout) ...[
                             const SizedBox(height: 8),
-                            _CartItemVariantButtons(
+                            CartItemVariantButtons(
                               cartItem: cartItem,
                               controller: controller,
                               onEdit: () =>
@@ -287,100 +288,5 @@ class TCartItems extends StatelessWidget {
 
     // Navigate to product detail
     Get.to(() => ProductDetailScreen(product: product));
-  }
-}
-
-class _CartItemVariantButtons extends StatelessWidget {
-  const _CartItemVariantButtons({
-    required this.cartItem,
-    required this.controller,
-    required this.onEdit,
-    required this.onAdd,
-  });
-
-  final CartItemModel cartItem;
-  final CartController controller;
-  final VoidCallback onEdit;
-  final VoidCallback onAdd;
-
-  @override
-  Widget build(BuildContext context) {
-    final product = cartItem.product;
-    if (product == null) return const SizedBox.shrink();
-
-    return Obx(() {
-      // Vérifie si la variation actuelle est déjà dans le panier
-      final currentVariationInCart = controller.isVariationInCart(
-        cartItem.productId,
-        cartItem.variationId,
-      );
-
-      // Vérifie si toutes les variations du produit sont déjà dans le panier
-      final allVariationsInCart = controller.areAllVariationsInCart(product);
-
-      return Row(
-        children: [
-          // Modifier (actif uniquement si la variation actuelle est dans le panier)
-          Expanded(
-            child: OutlinedButton.icon(
-              onPressed: currentVariationInCart ? onEdit : null,
-              icon: Icon(
-                Icons.edit_outlined,
-                size: 16,
-                color:
-                    currentVariationInCart ? Colors.blue.shade400 : Colors.grey,
-              ),
-              label: Text(
-                'Modifier',
-                style: TextStyle(
-                  fontSize: 12,
-                  color: currentVariationInCart
-                      ? Colors.blue.shade400
-                      : Colors.grey,
-                ),
-              ),
-              style: OutlinedButton.styleFrom(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
-                side: BorderSide(
-                  color: currentVariationInCart
-                      ? Colors.blue.shade400
-                      : Colors.grey.shade300,
-                ),
-              ),
-            ),
-          ),
-          const SizedBox(width: 8),
-
-          // Ajouter (désactivé seulement si TOUTES les variations sont déjà en panier)
-          Expanded(
-            child: OutlinedButton.icon(
-              onPressed: allVariationsInCart ? null : onAdd,
-              icon: Icon(
-                Icons.add_circle_outline,
-                size: 16,
-                color:
-                    allVariationsInCart ? Colors.grey : Colors.green.shade400,
-              ),
-              label: Text(
-                'Ajouter',
-                style: TextStyle(
-                  fontSize: 12,
-                  color:
-                      allVariationsInCart ? Colors.grey : Colors.green.shade400,
-                ),
-              ),
-              style: OutlinedButton.styleFrom(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
-                side: BorderSide(
-                  color: allVariationsInCart
-                      ? Colors.grey.shade300
-                      : Colors.green.shade400,
-                ),
-              ),
-            ),
-          ),
-        ],
-      );
-    });
   }
 }

@@ -5,16 +5,7 @@ import 'package:lottie/lottie.dart';
 import '../../../utils/constants/colors.dart';
 import '../../../utils/constants/sizes.dart';
 
-/// A widget for displaying an animated loading indicator with optional text and action button.
 class TAnimationLoaderWidget extends StatelessWidget {
-  /// Default constructor for the TAnimationLoaderWidget.
-  ///
-  /// Parameters:
-  ///   - text: The text to be displayed below the animation.
-  ///   - animation: The path to the Lottie animation file.
-  ///   - showAction: Whether to show an action button below the text.
-  ///   - actionText: The text to be displayed on the action button.
-  ///   - onActionPressed: Callback function to be executed when the action button is pressed.
   const TAnimationLoaderWidget({
     super.key,
     required this.text,
@@ -22,6 +13,8 @@ class TAnimationLoaderWidget extends StatelessWidget {
     this.showAction = false,
     this.actionText,
     this.onActionPressed,
+    this.textStyle,
+    this.actionTextStyle,
   });
 
   final String text;
@@ -30,65 +23,97 @@ class TAnimationLoaderWidget extends StatelessWidget {
   final String? actionText;
   final VoidCallback? onActionPressed;
 
+  /// Optional custom text styles for responsiveness
+  final TextStyle? textStyle;
+  final TextStyle? actionTextStyle;
+
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final baseTextStyle = textStyle ?? _getResponsiveTextStyle(screenWidth);
+
     return Center(
       child: Container(
         constraints: BoxConstraints(
-          maxWidth: MediaQuery.of(context).size.width * 0.8,
+          maxWidth: MediaQuery.of(context).size.width * 0.85,
         ),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           mainAxisSize: MainAxisSize.min,
           children: [
+            // Animation responsive
             Lottie.asset(
               animation,
-              width: _getAnimationSize(context), // Responsive animation size
+              width: _getAnimationSize(context),
+              fit: BoxFit.contain,
             ),
-            const SizedBox(height: AppSizes.defaultSpace),
+            const SizedBox(height: AppSizes.spaceBtwSections),
+
+            // Texte lisible et adaptatif
             Padding(
               padding:
                   const EdgeInsets.symmetric(horizontal: AppSizes.defaultSpace),
               child: Text(
                 text,
-                style: Theme.of(context).textTheme.bodyMedium,
+                style: baseTextStyle,
                 textAlign: TextAlign.center,
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
               ),
             ),
+
             const SizedBox(height: AppSizes.defaultSpace),
-            showAction
-                ? SizedBox(
-                    width: 250,
-                    child: OutlinedButton(
-                      onPressed: onActionPressed,
-                      style: OutlinedButton.styleFrom(
-                          backgroundColor: AppColors.dark),
-                      child: Text(
-                        actionText!,
-                        style: Theme.of(context)
-                            .textTheme
-                            .bodyMedium!
-                            .apply(color: AppColors.light),
-                      ),
+
+            // --- Bouton reverted to original implementation ---
+            if (showAction && actionText != null)
+              SizedBox(
+                width: 250, // <-- original fixed width
+                child: OutlinedButton(
+                  onPressed: onActionPressed,
+                  style: OutlinedButton.styleFrom(
+                    backgroundColor: AppColors.dark,
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
                     ),
-                  )
-                : const SizedBox(),
+                  ),
+                  child: Text(
+                    actionText!,
+                    style: Theme.of(context)
+                        .textTheme
+                        .bodyMedium!
+                        .apply(color: AppColors.light),
+                    textAlign: TextAlign.center,
+                  ),
+                ),
+              ),
           ],
         ),
       ),
     );
   }
 
+  // Responsive animation size
   double _getAnimationSize(BuildContext context) {
     final screenWidth = TDeviceUtils.getScreenWidth(context);
-    if (screenWidth > 1200) {
-      return 400.0;
+
+    if (screenWidth > 1600) {
+      return 420.0;
+    } else if (screenWidth > 900) {
+      return 340.0;
     } else if (screenWidth > 600) {
-      return 300.0;
+      return 280.0;
     } else {
-      return screenWidth * 0.8;
+      return screenWidth * 0.7;
+    }
+  }
+
+  // Texte principal adaptatif
+  TextStyle _getResponsiveTextStyle(double width) {
+    if (width < 400) {
+      return const TextStyle(fontSize: 16, fontWeight: FontWeight.w600);
+    } else if (width < 800) {
+      return const TextStyle(fontSize: 20, fontWeight: FontWeight.w600);
+    } else {
+      return const TextStyle(fontSize: 24, fontWeight: FontWeight.w700);
     }
   }
 }
