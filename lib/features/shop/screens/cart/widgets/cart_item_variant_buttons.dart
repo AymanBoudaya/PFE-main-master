@@ -23,6 +23,10 @@ class CartItemVariantButtons extends StatelessWidget {
     if (product == null) return const SizedBox.shrink();
 
     return Obx(() {
+      // Safety check: ensure controller is initialized
+      if (!Get.isRegistered<CartController>()) {
+        return const SizedBox.shrink();
+      }
       // Vérifie si la variation actuelle est déjà dans le panier
       final currentVariationInCart = controller.isVariationInCart(
         cartItem.productId,

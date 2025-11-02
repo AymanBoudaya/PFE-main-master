@@ -24,7 +24,7 @@ class CartController extends GetxController {
 
   // Get VariationController from GetX dependency injection
   VariationController get variationController =>
-      Get.find<VariationController>();
+      VariationController.instance;
 
   CartController() {
     loadCartItems();

@@ -8,7 +8,14 @@ import '../../models/produit_model.dart';
 enum ProduitFilter { all, stockables, nonStockables, rupture }
 
 class ProductController extends GetxController {
-  static ProductController get instance => Get.find();
+  static ProductController get instance {
+    try {
+      return Get.find<ProductController>();
+    } catch (e) {
+      // If not found, create it (shouldn't happen with proper binding)
+      return Get.put(ProductController(), permanent: true);
+    }
+  }
 
   final isLoading = false.obs;
   final produitRepository = ProduitRepository.instance;

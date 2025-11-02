@@ -111,6 +111,13 @@ class TimeSlotModal {
     bool dark,
   ) {
     return Obx(() {
+      // Safety check: ensure controllers are initialized
+      if (!Get.isRegistered<HoraireController>()) {
+        return const Padding(
+          padding: EdgeInsets.all(24.0),
+          child: Center(child: CircularProgressIndicator()),
+        );
+      }
       if (horaireController.isLoading.value) {
         return const Padding(
           padding: EdgeInsets.all(24.0),
@@ -224,6 +231,10 @@ class TimeSlotModal {
     final isPast = isToday && slotStart.isBefore(now);
 
     return Obx(() {
+      // Safety check: ensure controller is initialized
+      if (!Get.isRegistered<OrderController>()) {
+        return const SizedBox.shrink();
+      }
       final isSelected = orderController.selectedSlot.value == slot &&
           orderController.selectedDay.value == dayLabel;
 
@@ -295,6 +306,10 @@ class TimeSlotModal {
     BuildContext context,
   ) {
     return Obx(() {
+      // Safety check: ensure controller is initialized
+      if (!Get.isRegistered<OrderController>()) {
+        return const SizedBox.shrink();
+      }
       final hasSelection = orderController.selectedSlot.value != null &&
           orderController.selectedDay.value != null;
 

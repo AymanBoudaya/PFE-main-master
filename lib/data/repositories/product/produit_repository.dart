@@ -110,8 +110,11 @@ class ProduitRepository extends GetxController {
         final simpleQuery = _db
             .from(_table)
             .select('*')
-            .eq('categorie_id', categoryId)
-            .limit(limit);
+            .eq('categorie_id', categoryId);
+        
+        if (limit > 0) {
+          simpleQuery.limit(limit);
+        }
 
         final simpleData = await simpleQuery;
         return simpleData.map((item) => ProduitModel.fromMap(item)).toList();

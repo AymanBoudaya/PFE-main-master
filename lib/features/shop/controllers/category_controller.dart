@@ -18,7 +18,14 @@ enum CategoryFilter { all, featured }
 
 class CategoryController extends GetxController
     with GetTickerProviderStateMixin {
-  static CategoryController get instance => Get.find();
+  static CategoryController get instance {
+    try {
+      return Get.find<CategoryController>();
+    } catch (e) {
+      // If not found, create it (shouldn't happen with proper binding)
+      return Get.put(CategoryController(), permanent: true);
+    }
+  }
 
   final formKey = GlobalKey<FormState>();
   final nameController = TextEditingController();

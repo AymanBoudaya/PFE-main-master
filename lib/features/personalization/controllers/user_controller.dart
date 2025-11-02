@@ -8,7 +8,14 @@ import '../models/user_model.dart';
 import 'package:image_picker/image_picker.dart';
 
 class UserController extends GetxController {
-  static UserController get instance => Get.find();
+  static UserController get instance {
+    try {
+      return Get.find<UserController>();
+    } catch (e) {
+      // If not found, create it (shouldn't happen with proper binding)
+      return Get.put(UserController(), permanent: true);
+    }
+  }
   String get userRole => user.value.role;
   String? get currentEtablissementId => user.value.establishmentId;
   bool get hasEtablissement => user.value.establishmentId != null && user.value.establishmentId!.isNotEmpty;

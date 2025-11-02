@@ -104,6 +104,10 @@ class CheckoutScreen extends StatelessWidget {
   // Section créneau horaire
   Widget _buildTimeSlotSection(OrderController orderController) {
     return Obx(() {
+      // Safety check: ensure controller is initialized
+      if (!Get.isRegistered<OrderController>()) {
+        return const SizedBox.shrink();
+      }
       final hasTimeSlot = orderController.selectedSlot.value != null &&
           orderController.selectedDay.value != null;
 

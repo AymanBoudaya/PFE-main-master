@@ -22,7 +22,14 @@ import '../screens/address/add_new_address.dart';
 import 'user_controller.dart';
 
 class AddressController extends GetxController {
-  static AddressController get instance => Get.find();
+  static AddressController get instance {
+    try {
+      return Get.find<AddressController>();
+    } catch (e) {
+      // If not found, create it (shouldn't happen with proper binding)
+      return Get.put(AddressController(), permanent: true);
+    }
+  }
 
   // Form controllers
   final name = TextEditingController();

@@ -30,6 +30,10 @@ class CartScreen extends StatelessWidget {
           );
         }),
         body: Obx(() {
+          // Safety check: ensure controller is initialized
+          if (!Get.isRegistered<CartController>()) {
+            return const Center(child: CircularProgressIndicator());
+          }
           if (controller.cartItems.isEmpty) {
             return const EmptyCartView();
           }
@@ -47,6 +51,10 @@ class CartScreen extends StatelessWidget {
           );
         }),
         bottomNavigationBar: Obx(() {
+          // Safety check: ensure controller is initialized
+          if (!Get.isRegistered<CartController>()) {
+            return const SizedBox.shrink();
+          }
           if (controller.cartItems.isEmpty) return const SizedBox.shrink();
           return CartBottomSection(onCheckoutPressed: () {
             Get.to(() => const CheckoutScreen());

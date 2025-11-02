@@ -16,6 +16,10 @@ class CartAppBar extends StatelessWidget implements PreferredSizeWidget {
       showBackArrow: true,
       actions: [
         Obx(() {
+          // Safety check: ensure controller is initialized
+          if (!Get.isRegistered<CartController>()) {
+            return const SizedBox.shrink();
+          }
           if (controller.cartItems.isEmpty) return const SizedBox.shrink();
           return IconButton(
             icon: const Icon(Iconsax.trash),

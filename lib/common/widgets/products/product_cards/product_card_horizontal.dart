@@ -32,11 +32,21 @@ class TProductCardHorizontal extends StatelessWidget {
     final salePercentage =
         controller.calculateSalePercentage(product.price, product.salePrice);
     final dark = THelperFunctions.isDarkMode(context);
+    final screenWidth = MediaQuery.of(context).size.width;
+
+    // Responsive width - will be overridden if parent provides width constraint
+    final defaultCardWidth = screenWidth > 1200
+        ? 380.0
+        : screenWidth > 900
+            ? 340.0
+            : screenWidth > 600
+                ? 300.0
+                : 280.0;
 
     return GestureDetector(
       onTap: () => Get.to(() => ProductDetailScreen(product: product)),
       child: Container(
-        width: 310,
+        width: defaultCardWidth,
         padding: const EdgeInsets.all(0),
         decoration: BoxDecoration(
           color: dark ? AppColors.eerieBlack : AppColors.white,
@@ -231,13 +241,12 @@ class TProductCardHorizontal extends StatelessWidget {
 
   Widget _buildProductImage() {
     // Si l'URL de l'image commence par http, c'est une image réseau
-    if (product.imageUrl != null &&
-        product.imageUrl!.isNotEmpty &&
-        product.imageUrl!.startsWith('http')) {
+    if (product.imageUrl.isNotEmpty &&
+        product.imageUrl.startsWith('http')) {
       return ClipRRect(
         borderRadius: BorderRadius.circular(AppSizes.productImageRadius),
         child: Image.network(
-          product.imageUrl!,
+          product.imageUrl,
           width: double.infinity,
           height: double.infinity,
           fit: BoxFit.cover,
@@ -253,11 +262,11 @@ class TProductCardHorizontal extends StatelessWidget {
     }
 
     // Si c'est un asset local
-    if (product.imageUrl != null && product.imageUrl!.isNotEmpty) {
+    if (product.imageUrl.isNotEmpty) {
       return ClipRRect(
         borderRadius: BorderRadius.circular(AppSizes.productImageRadius),
         child: Image.asset(
-          product.imageUrl!,
+          product.imageUrl,
           width: double.infinity,
           height: double.infinity,
           fit: BoxFit.cover,

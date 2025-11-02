@@ -16,15 +16,41 @@ import '../../../../common/widgets/appbar/appbar.dart';
 import '../../../../common/widgets/appbar/tabbar.dart';
 import '../../../../utils/constants/colors.dart';
 import '../../controllers/category_controller.dart';
+import '../store/widgets/category_tab.dart';
 
 class StoreScreen extends StatelessWidget {
   const StoreScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
-    
     final etablissementController = EtablissementController.instance;
-    final categories = CategoryController.instance.featuredCategories;
+    final categoryController = CategoryController.instance;
+    
+    // Use Obx to reactively get categories and ensure controller is initialized
+    return Obx(() {
+      // Safety check: ensure controller is initialized
+      if (!Get.isRegistered<CategoryController>()) {
+        return const Scaffold(
+          body: Center(child: CircularProgressIndicator()),
+        );
+      }
+      
+      final categories = categoryController.featuredCategories;
+      
+      if (categories.isEmpty) {
+        return Scaffold(
+          appBar: TAppBar(
+            showBackArrow: false,
+            title: Text(
+              'Store',
+              style: Theme.of(context).textTheme.headlineMedium,
+            ),
+          ),
+          body: const Center(
+            child: Text('Chargement des catégories...'),
+          ),
+        );
+      }
     return DefaultTabController(
       length: categories.length,
       child: Scaffold(
@@ -140,17 +166,10 @@ class StoreScreen extends StatelessWidget {
               },
               body: TabBarView(
                 children: categories
-                    .map((category) => Tab(
-                          child: Text(
-                            category.name,
-                            style: Theme.of(context)
-                                .textTheme
-                                .titleMedium!
-                                .apply(color: AppColors.primary),
-                          ),
-                        ))
+                    .map((category) => CategoryTab(category: category))
                     .toList(),
               ))),
     );
+    });
   }
 }

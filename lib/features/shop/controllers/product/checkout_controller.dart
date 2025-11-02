@@ -8,7 +8,14 @@ import '../../models/payment_method_model.dart';
 import '../../screens/checkout/widgets/payment_tile.dart';
 
 class CheckoutController extends GetxController {
-  static CheckoutController get instance => Get.find();
+  static CheckoutController get instance {
+    try {
+      return Get.find<CheckoutController>();
+    } catch (e) {
+      // If not found, create it (shouldn't happen with proper binding)
+      return Get.put(CheckoutController(), permanent: true);
+    }
+  }
 
   final Rx<PaymentMethodModel> selectedPaymentMethod =
       PaymentMethodModel.empty().obs;

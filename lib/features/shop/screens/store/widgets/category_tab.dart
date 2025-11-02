@@ -1,14 +1,10 @@
-import 'package:caferesto/common/widgets/layouts/grid_layout.dart';
 import 'package:caferesto/common/widgets/texts/section_heading.dart';
 import 'package:caferesto/features/shop/controllers/category_controller.dart';
-import 'package:caferesto/features/shop/screens/all_products/all_products.dart';
 import 'package:caferesto/features/shop/screens/store/widgets/category_brands.dart';
-import 'package:caferesto/utils/helpers/cloud_helper_functions.dart';
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
 
-import '../../../../../common/widgets/products/product_cards/product_card_vertical.dart';
-import '../../../../../common/widgets/shimmer/vertical_product_shimmer.dart';
+import '../../../../../common/widgets/products/product_cards/product_card_horizontal.dart';
+import '../../../../../common/widgets/shimmer/horizontal_product_shimmer.dart';
 import '../../../../../utils/constants/sizes.dart';
 import '../../../models/category_model.dart';
 
@@ -17,12 +13,41 @@ class CategoryTab extends StatelessWidget {
 
   final CategoryModel category;
 
+  // Responsive card width
+  double _getCardWidth(double screenWidth) {
+    if (screenWidth > 1200) {
+      return 380.0; // Large screens (PC)
+    } else if (screenWidth > 900) {
+      return 340.0; // Medium screens (tablets)
+    } else if (screenWidth > 600) {
+      return 300.0; // Small tablets
+    } else {
+      return 280.0; // Mobile
+    }
+  }
+
+  // Responsive card height
+  double _getCardHeight(double screenWidth) {
+    if (screenWidth > 1200) {
+      return 160.0;
+    } else if (screenWidth > 600) {
+      return 150.0;
+    } else {
+      return 140.0;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final controller = CategoryController.instance;
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isLargeScreen = screenWidth > 900;
+    final cardWidth = _getCardWidth(screenWidth);
+    final cardHeight = _getCardHeight(screenWidth);
+
     return ListView(
-        shrinkWrap: true,
-        physics: const NeverScrollableScrollPhysics(),
+        shrinkWrap: false,
+        physics: const AlwaysScrollableScrollPhysics(),
         children: [
           Padding(
             padding: const EdgeInsets.all(AppSizes.defaultSpace),
@@ -34,40 +59,74 @@ class CategoryTab extends StatelessWidget {
                   height: AppSizes.spaceBtwItems,
                 ),
 
-                /// Products
+                /// Products - Display all products horizontally
                 FutureBuilder(
-                    future:
-                        controller.getCategoryProducts(categoryId: category.id),
+                    future: controller.getCategoryProducts(
+                        categoryId: category.id, limit: -1),
                     builder: (context, snapshot) {
-                      /// Handle loader , No record, Or Error Message
-                      final response =
-                          TCloudHelperFunctions.checkMultiRecordState(
-                              snapshot: snapshot,
-                              loader: const TVerticalProductShimmer());
-                      if (response != null) return response;
+                      // Handle loading state
+                      if (snapshot.connectionState == ConnectionState.waiting) {
+                        return SizedBox(
+                          height: cardHeight,
+                          child: ListView.builder(
+                            scrollDirection: Axis.horizontal,
+                            itemCount: 3,
+                            itemBuilder: (_, __) => Padding(
+                              padding: const EdgeInsets.only(
+                                  right: AppSizes.spaceBtwItems),
+                              child: SizedBox(
+                                width: cardWidth,
+                                child: THorizontalProductShimmer(),
+                              ),
+                            ),
+                          ),
+                        );
+                      }
+
+                      // Handle error state
+                      if (snapshot.hasError) {
+                        return const SizedBox.shrink();
+                      }
+
+                      // Handle empty state - just return empty, no message
+                      if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                        return const SizedBox.shrink();
+                      }
 
                       /// Records found
                       final products = snapshot.data!;
 
                       return Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           TSectionHeading(
-                            title: "Vous aimez peut être",
-                            onPressed: () => Get.to(
-                              () => AllProducts(
-                                title: category.name,
-                                futureMethod: controller.getCategoryProducts(
-                                    categoryId: category.id, limit: -1),
-                              ),
-                            ),
+                            title: category.name,
+                            showActionButton: false,
                           ),
                           const SizedBox(
                             height: AppSizes.spaceBtwItems,
                           ),
-                          GridLayout(
-                            itemCount: products.length,
-                            itemBuilder: (_, index) =>
-                                ProductCardVertical(product: products[index]),
+                          SizedBox(
+                            height: cardHeight,
+                            child: ListView.separated(
+                              scrollDirection: Axis.horizontal,
+                              itemCount: products.length,
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: AppSizes.defaultSpace),
+                              separatorBuilder: (context, index) => SizedBox(
+                                width: isLargeScreen
+                                    ? AppSizes.spaceBtwItems
+                                    : AppSizes.spaceBtwItems / 1.2,
+                              ),
+                              itemBuilder: (context, index) {
+                                final product = products[index];
+                                return SizedBox(
+                                  width: cardWidth,
+                                  child: TProductCardHorizontal(
+                                      product: product),
+                                );
+                              },
+                            ),
                           ),
                           const SizedBox(
                             height: AppSizes.spaceBtwSections,
