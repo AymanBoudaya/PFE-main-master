@@ -17,6 +17,8 @@ import '../../models/produit_model.dart';
 import '../../../../data/repositories/categories/category_repository.dart';
 import '../../controllers/etablissement_controller.dart';
 import '../../../personalization/screens/categories/widgets/category_form_widgets.dart';
+import '../../../personalization/controllers/user_controller.dart';
+import '../../../shop/models/statut_etablissement_model.dart';
 
 class AddProduitScreen extends StatefulWidget {
   final ProduitModel? produit;
@@ -68,6 +70,7 @@ class _AddProduitScreenState extends State<AddProduitScreen>
     if (_isEditing) _fillFormData();
     _initializeAnimation();
     _loadCategories();
+    _guardAccess();
   }
 
   @override
@@ -500,12 +503,40 @@ class _AddProduitScreenState extends State<AddProduitScreen>
 
   Future<String?> _getEtablissementIdUtilisateur() async {
     try {
+      final userRole = UserController.instance.userRole;
       final e =
           await _etablissementController.getEtablissementUtilisateurConnecte();
+
+      if (userRole == 'Gérant') {
+        if (e == null) {
+          TLoaders.errorSnackBar(message: 'Aucun établissement associé.');
+          return null;
+        }
+        if (e.statut != StatutEtablissement.approuve) {
+          TLoaders.errorSnackBar(
+              message:
+                  'Accès refusé: votre établissement n\'est pas approuvé.');
+          return null;
+        }
+      }
+
       return e?.id;
     } catch (_) {
       TLoaders.errorSnackBar(message: 'Erreur établissement');
       return null;
+    }
+  }
+
+  Future<void> _guardAccess() async {
+    final role = UserController.instance.userRole;
+    if (role != 'Gérant') return;
+    final etab =
+        await _etablissementController.getEtablissementUtilisateurConnecte();
+    if (etab == null || etab.statut != StatutEtablissement.approuve) {
+      TLoaders.errorSnackBar(
+          message:
+              'Accès désactivé tant que votre établissement n\'est pas approuvé.');
+      if (mounted) Get.back();
     }
   }
 

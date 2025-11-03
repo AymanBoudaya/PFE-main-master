@@ -5,12 +5,13 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 import '../../../../common/widgets/appbar/appbar.dart';
-import '../../../../utils/constants/enums.dart';
 import '../../../../utils/produit_helper.dart';
+import '../../../../utils/popups/loaders.dart';
 import '../../../personalization/controllers/user_controller.dart';
 import '../../controllers/product/produit_controller.dart';
 import '../../models/produit_model.dart';
 import 'add_produit_screen.dart';
+import '../../models/statut_etablissement_model.dart';
 
 class ListProduitScreen extends StatefulWidget {
   const ListProduitScreen({super.key});
@@ -22,6 +23,8 @@ class ListProduitScreen extends StatefulWidget {
 class _ListProduitScreenState extends State<ListProduitScreen> {
   late ProduitController controller;
   final etsController = EtablissementController.instance;
+  bool _accessDenied = false;
+  String _deniedReason = '';
 
   @override
   void initState() {
@@ -34,11 +37,29 @@ class _ListProduitScreenState extends State<ListProduitScreen> {
       Get.put(ProduitController());
     }
     controller = Get.find<ProduitController>();
-    _loadProducts();
+    _guardAccessAndLoad();
   }
 
   Future<void> _loadProducts() async {
     await controller.loadProductsByRole();
+  }
+
+  Future<void> _guardAccessAndLoad() async {
+    final role = UserController.instance.userRole;
+    if (role == 'Gérant') {
+      final etab = await etsController.getEtablissementUtilisateurConnecte();
+      if (etab == null || etab.statut != StatutEtablissement.approuve) {
+        setState(() {
+          _accessDenied = true;
+          _deniedReason = 'Votre établissement n\'est pas approuvé.';
+        });
+        TLoaders.errorSnackBar(
+            message:
+                'Accès désactivé tant que votre établissement n\'est pas approuvé.');
+        return;
+      }
+    }
+    _loadProducts();
   }
 
   void _navigateToAddProduit() {
@@ -57,14 +78,31 @@ class _ListProduitScreenState extends State<ListProduitScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: _buildAppBar(),
-      body: Column(
+      body: _accessDenied
+          ? Center(
+              child: Padding(
+              padding: const EdgeInsets.all(24),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(Icons.lock_outline, size: 48, color: Colors.grey),
+                  const SizedBox(height: 12),
+                  Text(
+                    _deniedReason,
+                    style: const TextStyle(fontSize: 16, color: Colors.grey),
+                    textAlign: TextAlign.center,
+                  ),
+                ],
+              ),
+            ))
+          : Column(
         children: [
           _buildSearchBar(),
           _buildFilterChips(),
           Expanded(child: _buildBody()),
         ],
       ),
-      floatingActionButton: _buildFloatingActionButton(),
+      floatingActionButton: _accessDenied ? null : _buildFloatingActionButton(),
     );
   }
 

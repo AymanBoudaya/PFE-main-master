@@ -19,6 +19,9 @@ import '../../controllers/user_controller.dart';
 import '../address/address.dart';
 import '../brands/mon_etablissement_screen.dart';
 import '../categories/category_manager_screen.dart';
+import '../../../shop/controllers/etablissement_controller.dart';
+import '../../../../utils/popups/loaders.dart';
+import '../../../shop/models/statut_etablissement_model.dart';
 
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
@@ -138,10 +141,21 @@ class SettingsScreen extends StatelessWidget {
                     subTitle:
                         "Consulter, ajouter, modifier ou supprimer une catégorie",
                     onTap: () async {
+                      final role = userController.user.value.role;
+                      if (role == 'Gérant') {
+                        final etab = await EtablissementController.instance
+                            .getEtablissementUtilisateurConnecte();
+                        if (etab == null ||
+                            etab.statut != StatutEtablissement.approuve) {
+                          TLoaders.errorSnackBar(
+                              message:
+                                  'Accès désactivé tant que votre établissement n\'est pas approuvé.');
+                          return;
+                        }
+                      }
                       final result =
                           await Get.to(() => GerantOrderManagementScreen());
                       if (result == true) {
-                        // Le formulaire a été réinitialisé
                         print("Écran fermé et formulaire réinitialisé");
                       }
                     },
@@ -180,7 +194,21 @@ class SettingsScreen extends StatelessWidget {
                     title: "Gérer produit",
                     subTitle:
                         "Consulter, ajouter, modifier ou supprimer un produit",
-                    onTap: () => Get.to(() => ListProduitScreen()),
+                    onTap: () async {
+                      final role = userController.user.value.role;
+                      if (role == 'Gérant') {
+                        final etab = await EtablissementController.instance
+                            .getEtablissementUtilisateurConnecte();
+                        if (etab == null ||
+                            etab.statut != StatutEtablissement.approuve) {
+                          TLoaders.errorSnackBar(
+                              message:
+                                  'Accès désactivé tant que votre établissement n\'est pas approuvé.');
+                          return;
+                        }
+                      }
+                      Get.to(() => ListProduitScreen());
+                    },
                   ),
                 SizedBox(
                   height: AppSizes.spaceBtwSections,
